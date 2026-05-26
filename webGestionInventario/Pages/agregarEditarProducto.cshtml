@@ -1,0 +1,55 @@
+﻿@page
+@model webGestionInventario.Pages.agregarEditarProductoModel
+@{
+    ViewData["Title"] = "Agregar/Editar Producto";
+
+}
+<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6">
+
+    <div class="grid grid-cols-3 gap-6 p-4 border-b">
+        <div class="block text-sm font-medium">
+            <label class="block text-sm font-medium">Nombre</label>
+            <input type="text" class="w-full border p-2 rounded" value="0">
+
+        </div>
+        <div><label class="block text-sm font-medium">Ingrediente:</label>
+            <select class="w-full border p-2 rounded"><option>Seleccionar...</option></select></div>
+        <div><label class="block text-sm font-medium">Cantidad requerida:</label>
+            <input type="number" class="w-full border p-2 rounded" value="0"></div>
+        <div><label class="block text-sm font-medium">Precio:</label></div>
+    </div>
+    <div class="flex gap-4">
+        <div class="flex-1">
+            <h2 class="font-bold mb-2">Receta:</h2>
+            <table class="w-full text-sm text-left border">
+                <thead class="bg-gray-100 uppercase">
+                    <tr><th class="p-2 border">Insumo</th>
+                        <th class="p-2 border">Cantidad</th>
+                        <th class="p-2 border">Medida unidad</th>
+                        <th class="p-3 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b">
+                        <td class="p-2 border">Vienesa</td>
+                        <td class="p-2 border">2</td>
+                        <td class="p-2 border">unidades</td>
+                        <td class="p-3 border flex justify-center gap-2">
+                            <button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">eliminar</button>
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">actualizar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="flex flex-col gap-2 pt-8">
+            <button class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">Agregar</button>
+            <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Guardar</button>
+            <a href="Productos" class="inline-block mt-4 bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition text-center" role="button">Cancelar</a>
+
+
+        </div>
+    </div>
+
+
+</div>

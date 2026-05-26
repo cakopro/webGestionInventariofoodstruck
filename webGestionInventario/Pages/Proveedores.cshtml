@@ -1,0 +1,39 @@
+﻿@page
+@model webGestionInventario.Pages.ProveedoresModel
+@{
+    ViewData["Title"] = "Proveedores";
+}
+
+<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-xl text-black font-bold mb-4">Lista Proveedores</h1>
+        <table class="table-auto w-full border-collapse">
+            <thead>
+                <tr class="border p-2">
+                <th class="p-3 text-left">Id</th>
+                <th class="p-3 text-left">Nombre</th>
+                <th class="p-3 text-left">Rut</th>
+                <th class="p-3 text-left">Telefono</th>
+                <th class="p-3 text-left">Correo</th>
+                <th class="p-3 text-left">Empresa</th>
+                <th class="p-3 text-left">Direccion</th>
+                <th class="p-3 text-center">Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            <tr class="border-b hover:bg-gray-100 transition">
+                <td class="p-3">1</td>
+                <td class ="p-3">cako</td>
+                <td class="p-3">123</td>
+                <td class="p-3">+321321</td>
+                <td class="p-3">cako@gmail.com</td>
+                <td class="p-3">cako Panaderia</td>
+                <td class="p-3">Fantasilandia</td>
+                <td class="p-3"><button class="mt-4 bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition">eliminar</button></td>
+                <td class="p-3"><button class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">actualizar</button></td>
+                </tr>
+
+            </tbody>
+        </table>
+    <a href="AgregarEditarProveedor" class="inline-block mt-4 bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition text-center" role="button">Agregar</a>
+    </div>

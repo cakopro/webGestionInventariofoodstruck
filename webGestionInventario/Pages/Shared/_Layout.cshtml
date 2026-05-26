@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Mi Sistema</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+     <header>
+        <nav class="bg-gray-800 text-white p-4 flex items-center justify-between">
+            <div class="font-bold text-xl">
+                Mi Logo
+            </div>
+             <ul class="flex space-x-6">
+                <li><a href="/Proveedores" class="hover:text-blue-300">Proovedores</a> </li>
+                <li><a href="/Insumos" class="hover:text-blue-300">Insumos</a></li>
+                <li><a href="/Productos" class="hover:text-blue-300">Productos</a></li>
+                <li><a href="/Ventas" class="hover:text-blue-300">Ventas</a> </li>
+
+             </ul>
+
+            <div class="font-bold text-xl">
+                Usuario Admin
+            </div>
+         </nav>
+
+     </header>
+    <main class="container mx-auto p-8">
+        @RenderBody()
+    </main>
+    <footer> 
+        <nav class ="bg-gray-800 text-white p-4 flex items-center justify-between">
+            
+           <ul class="flex space-x-6">
+               <li>2026</li>
+                <li>GestionInventarioFoodSturck</li>
+           </ul>
+        </nav>
+
+    </footer>
+</body>
+</html>

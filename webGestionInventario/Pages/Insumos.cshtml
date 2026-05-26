@@ -1,0 +1,40 @@
+﻿@page
+@model webGestionInventario.Pages.InsumosModel
+@{
+    ViewData["Title"] = "Insumos";
+
+}
+
+<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-xl text-black font-bold mb-4">Lista Insumo</h1>
+    <table class="table-auto w-full border-collapse">
+        <thead>
+            <tr class="border p-2">
+                <th class="p-3">Id</th>
+                <th class="p-3">Nombre</th>
+                <th class="p-3">Stock actual</th>
+                <th class="p-3">Unidad Medida</th>
+                <th class="p-3">Precio unitario</th>
+                <th class="p-3">Fecha caducidad</th>
+                <th class="p-3">Id_proveedor</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr class="border-b hover:bg-gray-100 transition">
+                <td class="p-3">1</td>
+                <td class="p-3">vienesa</td>
+                <td class="p-3">123</td>
+                <td class="p-3">Unidades</td>
+                <td class="p-3">200</td>
+                <td class="p-3">2024-12-31</td>
+                <td class="p-3">1</td>
+                <td class="p-3"><button class="mt-4 bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition">eliminar</button></td>
+                <td class="p-3"><button class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">actualizar</button></td>
+            </tr>
+
+        </tbody>
+    </table>
+    <a href="AgregarEditarInsumos" class="inline-block mt-4 bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition text-center" role="button">Agregar</a>
+
+</div>

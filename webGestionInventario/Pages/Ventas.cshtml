@@ -1,0 +1,60 @@
+﻿@page
+@model webGestionInventario.Pages.VentasModel
+@{
+    ViewData["Title"] = "Ventas";
+
+}
+<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6">
+    <div class="grid grid-cols-3 gap-6 p-4 border-b">
+        <div><label class="block text-sm font-medium">Producto:</label><select class="w-full border p-2 rounded"><option>Seleccionar...</option></select></div>
+        <div><label class="block text-sm font-medium">Cantidad:</label><input type="number" class="w-full border p-2 rounded" value="0"></div>
+        <div><label class="block text-sm font-medium">Precio:</label><input type="text" class="w-full border p-2 rounded" value="$0"></div>
+    </div>
+
+    <div class="flex gap-4">
+        <div class="flex-1">
+            <h2 class="font-bold mb-2">Detalle Venta</h2>
+            <table class="w-full text-sm text-left border">
+                <thead class="bg-gray-100 uppercase">
+                    <tr><th class="p-2 border">Producto</th><th class="p-2 border">Cantidad</th><th class="p-2 border">SubTotal</th></tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b">
+                        <td class="p-2 border">Completo</td>
+                        <td class="p-2 border">2</td>
+                        <td class="p-2 border">1500</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="flex flex-col gap-2 pt-8">
+            <button class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">Agregar</button>
+            <button class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">Eliminar</button>
+        </div>
+    </div>
+
+    <div class="flex justify-between items-center bg-gray-50 p-4 rounded font-bold">
+        <button class="bg-blue-600 text-white px-6 py-2 rounded">Finalizar</button>
+        <div>IVA(19%): $0 | Total: $0</div>
+    </div>
+    <table class="w-full text-sm text-left border">
+        <thead class="bg-gray-100 uppercase">
+            <tr>
+                <th class="p-2 border">Id</th>
+                <th class="p-2 border">Cliente</th>
+                <th class="p-2 border">Fecha</th>
+                <th class="p-2 border">Iva</th>
+                <th class="p-2 border">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="border-b">
+                <td class="p-2 border">1</td>
+                <td class="p-2 border">Juan Perez</td>
+                <td class="p-2 border">2024-06-15</td>
+                <td class="p-2 border">$285</td>
+                <td class="p-2 border">$1785</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
