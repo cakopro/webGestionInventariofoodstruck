@@ -1,0 +1,67 @@
+﻿@page "{id:int}"
+@model webGestionInventario.Pages.EditarInsumoModel
+@{
+    ViewData["Title"] = "Editar Insumo";
+  
+    var fechaHoy = DateTime.Now.ToString("yyyy-MM-dd");
+}
+
+<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-xl text-black font-bold mb-4">Editar Insumo</h1>
+
+    @if (Model.ListaProveedores == null || Model.ListaProveedores.Count == 0)
+    {
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">¡Atención!</strong>
+            <span class="block sm:inline">No hay proveedores activos en el sistema.</span>
+        </div>
+        <a href="/Insumos" class="inline-block mt-4 bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition text-center" role="button">Volver a Insumos</a>
+    }
+    else
+    {
+        <form method="post">
+            <input type="hidden" asp-for="InsumoEditar.Id" />
+
+            <label class="block text-gray-700 font-bold mb-2">Nombre del Insumo:</label>
+            <input asp-for="InsumoEditar.Nombre" class="w-full border border-gray-300 rounded-md p-2 mb-4"
+                   pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" title="Solo se permiten letras y espacios" required />
+
+            <label class="block text-gray-700 font-bold mb-2">Stock Actual:</label>
+            <input type="number" asp-for="InsumoEditar.StockActual" class="w-full border border-gray-300 rounded-md p-2 mb-4"
+                   min="0" title="No se aceptan números negativos" required />
+
+            <label class="block text-gray-700 font-bold mb-2">Unidad de Medida:</label>
+            <select asp-for="InsumoEditar.UnidadMedida" class="w-full border border-gray-300 rounded-md p-2 mb-4" required>
+                <option value="">-- Seleccione una unidad --</option>
+                <option value="Unidades">Unidades</option>
+                <option value="Kg">Kilogramos (Kg)</option>
+                <option value="Gramos">Gramos (g)</option>
+                <option value="Litros">Litros (L)</option>
+                <option value="Cc">Centímetros cúbicos (Cc)</option>
+                <option value="Cajas">Cajas</option>
+            </select>
+
+            <label class="block text-gray-700 font-bold mb-2">Precio Unitario:</label>
+            <input type="number" step="0.01" asp-for="InsumoEditar.PrecioUnitario" class="w-full border border-gray-300 rounded-md p-2 mb-4"
+                   min="0" required />
+
+            <label class="block text-gray-700 font-bold mb-2">Fecha de Caducidad:</label>
+            <input type="date" asp-for="InsumoEditar.FechaCaducidad" class="w-full border border-gray-300 rounded-md p-2 mb-4"
+                   min="@fechaHoy" required />
+
+            <label class="block text-gray-700 font-bold mb-2">Proveedor:</label>
+            <select asp-for="InsumoEditar.Id_Proveedor" class="w-full border border-gray-300 rounded-md p-2 mb-4" required>
+                <option value="">-- Seleccione un proveedor --</option>
+                @foreach (var prov in Model.ListaProveedores)
+                {
+                    <option value="@prov.Id">@prov.Nombre (Empresa: @prov.Empresa)</option>
+                }
+            </select>
+
+            <div class="flex flex-row gap-2 pt-8">
+                <button type="submit" class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">Actualizar</button>
+                <a href="/Insumos" class="inline-block mt-4 bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition text-center" role="button">Cancelar</a>
+            </div>
+        </form>
+    }
+</div>

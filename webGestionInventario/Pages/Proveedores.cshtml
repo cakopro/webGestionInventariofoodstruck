@@ -6,9 +6,17 @@
 
 <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
     <h1 class="text-xl text-black font-bold mb-4">Lista Proveedores</h1>
-        <table class="table-auto w-full border-collapse">
-            <thead>
-                <tr class="border p-2">
+
+    <form method="get" class="mb-4">
+        <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" asp-for="MostrarInactivos" class="form-checkbox h-5 w-5 text-blue-600" onchange="this.form.submit()" />
+            <span class="ml-2 text-gray-700 font-bold">Ver proveedores inactivos (eliminados)</span>
+        </label>
+    </form>
+
+    <table class="table-auto w-full border-collapse">
+        <thead>
+            <tr class="border p-2">
                 <th class="p-3 text-left">Id</th>
                 <th class="p-3 text-left">Nombre</th>
                 <th class="p-3 text-left">Rut</th>
@@ -18,28 +26,33 @@
                 <th class="p-3 text-left">Direccion</th>
                 <th class="p-3 text-left">Estado</th>
                 <th class="p-3 text-center">Acciones</th>
-                </tr>
-            </thead>
-
-            <tbody>
-            @foreach (var item in Model.ListaProveedores)
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.ListaProveedores != null)
             {
-                <tr class="border-b hover:bg-gray-100 transition">
-                    <td class="p-3">@item.Id</td>
-                    <td class ="p-3">@item.Nombre</td>
-                    <td class="p-3">@item.Rut</td>
-                    <td class="p-3">@item.Telefono</td>
-                    <td class="p-3">@item.Correo</td>
-                    <td class="p-3">@item.Empresa</td>
-                    <td class="p-3">@item.Direccion</td>
-                    <td class="p-3">@item.Estado</td>
-                    <td class="p-3 text-center">
-                        <button class="bg-red-500 text-white px-2 py-1 rounded">eliminar</button>
-                        <button class="bg-blue-500 text-white px-2 py-1 rounded">actualizar</button>
-                    </td>
-                </tr>
+                foreach (var item in Model.ListaProveedores)
+                {
+                    <tr class="border-b hover:bg-gray-100 transition">
+                        <td class="p-3">@item.Id</td>
+                        <td class="p-3">@item.Nombre</td>
+                        <td class="p-3">@item.Rut</td>
+                        <td class="p-3">@item.Telefono</td>
+                        <td class="p-3">@item.Correo</td>
+                        <td class="p-3">@item.Empresa</td>
+                        <td class="p-3">@item.Direccion</td>
+                        <td class="p-3">@item.Estado</td>
+                        <td class="p-3 text-center flex justify-center gap-2">
+                            <a href="AgregarEditarProveedor?id=@item.Id" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">actualizar</a>
+
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id" style="display:inline;">
+                                <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" onclick="return confirm('¿Estás seguro de que deseas eliminar este proveedor?');">eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
-        </table>
+    </table>
     <a href="AgregarEditarProveedor" class="inline-block mt-4 bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition text-center" role="button">Agregar</a>
-    </div>
+</div>
