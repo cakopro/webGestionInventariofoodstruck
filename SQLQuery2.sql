@@ -1,0 +1,1 @@
+﻿CREATE TABLE DetalleVenta ( Id INT IDENTITY(1,1) PRIMARY KEY, IdVenta INT, IdProducto INT, Producto NVARCHAR(100), Precio DECIMAL(18, 2), Cantidad INT, Subtotal DECIMAL(18, 2), CONSTRAINT FK_DetalleVenta_Ventas FOREIGN KEY (IdVenta) REFERENCES Ventas(Id), CONSTRAINT FK_DetalleVenta_Productos FOREIGN KEY (IdProducto) REFERENCES Productos(Id) );

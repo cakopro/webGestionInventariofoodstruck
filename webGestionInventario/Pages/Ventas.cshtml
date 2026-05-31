@@ -1,60 +1,108 @@
-﻿@page
+@page
 @model webGestionInventario.Pages.VentasModel
 @{
-    ViewData["Title"] = "Ventas";
-
+    ViewData["Title"] = "Punto de Venta";
 }
-<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6">
-    <div class="grid grid-cols-3 gap-6 p-4 border-b">
-        <div><label class="block text-sm font-medium">Producto:</label><select class="w-full border p-2 rounded"><option>Seleccionar...</option></select></div>
-        <div><label class="block text-sm font-medium">Cantidad:</label><input type="number" class="w-full border p-2 rounded" value="0"></div>
-        <div><label class="block text-sm font-medium">Precio:</label><input type="text" class="w-full border p-2 rounded" value="$0"></div>
-    </div>
 
-    <div class="flex gap-4">
-        <div class="flex-1">
-            <h2 class="font-bold mb-2">Detalle Venta</h2>
-            <table class="w-full text-sm text-left border">
-                <thead class="bg-gray-100 uppercase">
-                    <tr><th class="p-2 border">Producto</th><th class="p-2 border">Cantidad</th><th class="p-2 border">SubTotal</th></tr>
-                </thead>
-                <tbody>
-                    <tr class="border-b">
-                        <td class="p-2 border">Completo</td>
-                        <td class="p-2 border">2</td>
-                        <td class="p-2 border">1500</td>
-                    </tr>
-                </tbody>
-            </table>
+<div class="max-w-7xl mx-auto p-6 space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <div class="md:col-span-1 bg-white p-6 rounded-lg shadow-md border">
+            <h2 class="text-xl font-bold mb-4 text-gray-700">Seleccionar Producto</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">Producto:</label>
+                    <select id="selectProducto" class="w-full border p-2 rounded">
+                        <option value="">-- Seleccione --</option>
+                        @foreach (var p in Model.ListaProductos)
+                        {
+                            <option value="@p.Id" data-precio="@p.PrecioVenta">@p.Nombre ($@p.PrecioVenta)</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Cantidad:</label>
+                    <input type="number" id="inputCantidad" class="w-full border p-2 rounded" value="1" min="1">
+                </div>
+                <button id="btnAgregar" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Agregar a la Lista</button>
+            </div>
         </div>
-        <div class="flex flex-col gap-2 pt-8">
-            <button class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">Agregar</button>
-            <button class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">Eliminar</button>
-        </div>
-    </div>
 
-    <div class="flex justify-between items-center bg-gray-50 p-4 rounded font-bold">
-        <button class="bg-blue-600 text-white px-6 py-2 rounded">Finalizar</button>
-        <div>IVA(19%): $0 | Total: $0</div>
+        <div class="md:col-span-2 bg-white p-6 rounded-lg shadow-md border">
+            <h2 class="text-xl font-bold mb-4 text-gray-700">Detalle de la Venta</h2>
+            <form method="post" id="formVenta">
+                <input type="hidden" asp-for="DetallesJson" id="inputDetallesJson" />
+                
+                <table class="w-full text-sm text-left border mb-4">
+                    <thead class="bg-gray-100 uppercase">
+                        <tr><th class="p-2 border">Producto</th><th class="p-2 border text-center">Cant</th><th class="p-2 border text-right">Precio</th><th class="p-2 border text-right">Subtotal</th></tr>
+                    </thead>
+                    <tbody id="tablaDetallesBody">
+                    </tbody>
+                </table>
+
+                <div class="border-t pt-4">
+                    <div class="flex justify-end gap-6 text-lg font-bold mb-4">
+                        <span>IVA(19%): <span id="resumenIVA">$0.00</span></span>
+                        <span>Total: <span id="resumenTotal">$0.00</span></span>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded text-lg font-bold hover:bg-green-700">Finalizar Venta</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <table class="w-full text-sm text-left border">
-        <thead class="bg-gray-100 uppercase">
-            <tr>
-                <th class="p-2 border">Id</th>
-                <th class="p-2 border">Cliente</th>
-                <th class="p-2 border">Fecha</th>
-                <th class="p-2 border">Iva</th>
-                <th class="p-2 border">Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="border-b">
-                <td class="p-2 border">1</td>
-                <td class="p-2 border">Juan Perez</td>
-                <td class="p-2 border">2024-06-15</td>
-                <td class="p-2 border">$285</td>
-                <td class="p-2 border">$1785</td>
-            </tr>
-        </tbody>
-    </table>
 </div>
+
+ 
+@section Scripts {
+    <script>
+        let detalles = [];
+
+        document.getElementById('btnAgregar').addEventListener('click', function() {
+            const select = document.getElementById('selectProducto');
+            const inputCant = document.getElementById('inputCantidad');
+            
+            
+            if (select.value === "") {
+                alert("Por favor, selecciona un producto");
+                return;
+            }
+
+            const id = select.value;
+            const nombre = select.options[select.selectedIndex].text.split(' ($')[0];
+            const precio = parseFloat(select.options[select.selectedIndex].getAttribute('data-precio'));
+            const cantidad = parseInt(inputCant.value);
+            const subtotal = precio * cantidad;
+
+            
+            detalles.push({ IdProducto: id, Producto: nombre, Precio: precio, Cantidad: cantidad, Subtotal: subtotal });
+            
+            renderTabla();
+        });
+
+        function renderTabla() {
+            const tbody = document.getElementById('tablaDetallesBody');
+            tbody.innerHTML = '';
+            let totalGeneral = 0;
+
+            detalles.forEach(item => {
+                totalGeneral += item.Subtotal;
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2 border">${item.Producto}</td>
+                        <td class="p-2 border text-center">${item.Cantidad}</td>
+                        <td class="p-2 border text-right">$${item.Precio.toFixed(0)}</td>
+                        <td class="p-2 border text-right">$${item.Subtotal.toFixed(0)}</td>
+                    </tr>`;
+            });
+
+            
+            const iva = totalGeneral * 0.19;
+            const total = totalGeneral + iva;
+
+            document.getElementById('resumenIVA').innerText = `$${iva.toFixed(0)}`;
+            document.getElementById('resumenTotal').innerText = `$${total.toFixed(0)}`;
+            document.getElementById('inputDetallesJson').value = JSON.stringify(detalles);
+        }
+    </script>
+}

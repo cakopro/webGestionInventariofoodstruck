@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using webGestionInventario.Model;
 namespace webGestionInventario.data
 
@@ -18,7 +18,7 @@ namespace webGestionInventario.data
             {
                 await connection.OpenAsync();
 
-              
+
                 int estadoFiltro = mostrarInactivos ? 0 : 1;
 
                 var command = new SqlCommand("SELECT * FROM Proveedores WHERE Estado = @Estado", connection);
@@ -61,7 +61,7 @@ namespace webGestionInventario.data
                 }
             }
         }
-    
+
         public async Task DeleteProveedor(int id)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -85,11 +85,11 @@ namespace webGestionInventario.data
 
                 int estadoFiltro = mostrarInactivos ? 0 : 1;
 
-               
+
                 string sql = @"
-                    SELECT i.*, p.Nombre AS NombreProveedor 
-                    FROM Insumos i 
-                    INNER JOIN Proveedores p ON i.Id_Proveedor = p.Id 
+                    SELECT i.*, p.Nombre AS NombreProveedor
+                    FROM Insumos i
+                    INNER JOIN Proveedores p ON i.Id_Proveedor = p.Id
                     WHERE i.Estado = @Estado";
 
                 var command = new SqlCommand(sql, connection);
@@ -110,7 +110,7 @@ namespace webGestionInventario.data
                             Id_Proveedor = (int)reader["Id_Proveedor"],
                             Estado = (bool)reader["Estado"],
 
-                          
+
                             NombreProveedor = reader["NombreProveedor"].ToString()
                         });
                     }
@@ -138,7 +138,7 @@ namespace webGestionInventario.data
             }
         }
 
-       
+
         public async Task<Insumos> ObtenerInsumoPorId(int id)
         {
             Insumos insumo = null;
@@ -171,7 +171,7 @@ namespace webGestionInventario.data
             return insumo;
         }
 
-        
+
         public async Task UpdateInsumo(Insumos insumo)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -193,13 +193,13 @@ namespace webGestionInventario.data
             }
         }
 
-     
+
         public async Task DeleteInsumo(int id)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
-              
+
                 string query = "UPDATE Insumos SET Estado = 0 WHERE Id = @Id";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -210,14 +210,14 @@ namespace webGestionInventario.data
         }
 
 
- 
+
         public async Task<List<Proveedores>> ObtenerProveedoresActivos()
         {
             var proveedores = new List<Proveedores>();
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-            
+
                 var command = new SqlCommand("SELECT * FROM Proveedores WHERE Estado = 1", connection);
                 using (var reader = await command.ExecuteReaderAsync())
                 {
@@ -240,6 +240,125 @@ namespace webGestionInventario.data
             return proveedores;
         }
 
+        public async Task RegistrarVenta(Venta venta, List<DetalleVenta> detalles)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        
+                        string insertVentaQuery = @"
+                            INSERT INTO Ventas (NombreCliente, Fecha, IVA, Total) 
+                            OUTPUT INSERTED.Id 
+                            VALUES (@NombreCliente, @Fecha, @IVA, @Total)";
 
+                        int ventaId;
+                        using (var cmdVenta = new SqlCommand(insertVentaQuery, connection, transaction))
+                        {
+                            cmdVenta.Parameters.AddWithValue("@NombreCliente", (object)venta.NombreCliente ?? DBNull.Value);
+                            cmdVenta.Parameters.AddWithValue("@Fecha", venta.Fecha);
+                            cmdVenta.Parameters.AddWithValue("@IVA", venta.IVA);
+                            cmdVenta.Parameters.AddWithValue("@Total", venta.Total);
+                            ventaId = (int)await cmdVenta.ExecuteScalarAsync();
+                        }
+
+                        foreach (var detalle in detalles)
+                        {
+                            
+                            string insertDetalleQuery = @"
+                                INSERT INTO DetalleVenta (IdVenta, IdProducto, Producto, Precio, Cantidad, Subtotal) 
+                                VALUES (@IdVenta, @IdProducto, @Producto, @Precio, @Cantidad, @Subtotal)";
+
+                            using (var cmdDetalle = new SqlCommand(insertDetalleQuery, connection, transaction))
+                            {
+                                cmdDetalle.Parameters.AddWithValue("@IdVenta", ventaId);
+                                cmdDetalle.Parameters.AddWithValue("@IdProducto", detalle.IdProducto);
+                                cmdDetalle.Parameters.AddWithValue("@Producto", detalle.Producto);
+                                cmdDetalle.Parameters.AddWithValue("@Precio", detalle.Precio);
+                                cmdDetalle.Parameters.AddWithValue("@Cantidad", detalle.Cantidad);
+                                cmdDetalle.Parameters.AddWithValue("@Subtotal", detalle.Subtotal);
+                                await cmdDetalle.ExecuteNonQueryAsync();
+                            }
+
+                            
+                            string checkAndUpdateStockQuery = @"
+                                DECLARE @Insuficiente TABLE (Nombre NVARCHAR(100));
+
+                                INSERT INTO @Insuficiente (Nombre)
+                                SELECT i.Nombre
+                                FROM Insumos i
+                                INNER JOIN Recetas r ON i.Id = r.Id_Insumo
+                                WHERE r.Id_Producto = @IdProducto 
+                                  AND i.StockActual < (r.CantidadRequerida * @CantidadVendida);
+
+                                IF EXISTS (SELECT 1 FROM @Insuficiente)
+                                BEGIN
+                                    SELECT Nombre FROM @Insuficiente;
+                                END
+                                ELSE
+                                BEGIN
+                                    UPDATE Insumos 
+                                    SET StockActual = StockActual - (r.CantidadRequerida * @CantidadVendida)
+                                    FROM Insumos i
+                                    INNER JOIN Recetas r ON i.Id = r.Id_Insumo
+                                    WHERE r.Id_Producto = @IdProducto;
+                                    
+                                    SELECT NULL; -- Indicar éxito
+                                END";
+
+                            using (var cmdStock = new SqlCommand(checkAndUpdateStockQuery, connection, transaction))
+                            {
+                                cmdStock.Parameters.AddWithValue("@CantidadVendida", detalle.Cantidad);
+                                cmdStock.Parameters.AddWithValue("@IdProducto", detalle.IdProducto);
+                                
+                                using (var reader = await cmdStock.ExecuteReaderAsync())
+                                {
+                                    if (await reader.ReadAsync() && !reader.IsDBNull(0))
+                                    {
+                                        string insumoFaltante = reader.GetString(0);
+                                        throw new InvalidOperationException($"Stock insuficiente para el insumo: {insumoFaltante} al procesar {detalle.Producto}.");
+                                    }
+                                }
+                            }
+                        }
+
+                        await transaction.CommitAsync();
+                    }
+                    catch (Exception)
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
+                }
+            }
+        }
+
+        public async Task<List<Producto>> ObtenerProductos()
+        {
+            var productos = new List<Producto>();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                
+                var command = new SqlCommand("SELECT Id, Nombre, PrecioVenta FROM Productos", connection);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        productos.Add(new Producto
+                        {
+                            Id = Convert.ToInt32(reader["Id"]),
+                            Nombre = reader["Nombre"]?.ToString() ?? "Sin Nombre",
+                            PrecioVenta = reader["PrecioVenta"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioVenta"]) : 0m
+                        });
+                    }
+                }
+            }
+            return productos;
+        }
     }
 }
