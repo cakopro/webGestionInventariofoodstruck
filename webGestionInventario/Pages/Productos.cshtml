@@ -25,7 +25,7 @@
                     <td class="p-3">@item.PrecioVenta</td>
                     
                     <td class="p-3 text-center flex justify-center gap-2" onclick="event.stopPropagation()">
-                        <a href="AgregarEditarProveedor?id=@item.Id" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">actualizar</a>
+                        <a href="AgregarEditarProducto?id=@item.Id" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">actualizar</a>
 
                         <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id" style="display:inline;">
                             <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">eliminar</button>

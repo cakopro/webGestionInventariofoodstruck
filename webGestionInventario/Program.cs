@@ -3,7 +3,11 @@ using webGestionInventario.data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages(options =>
+{
+ 
+    options.Conventions.AddPageRoute("/login", "");
+});
 
 builder.Services.AddScoped<webGestionInventario.data.DataBaseHelper>();
 var app = builder.Build();

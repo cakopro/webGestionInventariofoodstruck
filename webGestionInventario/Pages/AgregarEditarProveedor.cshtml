@@ -1,36 +1,57 @@
-﻿@page
+﻿@page "{id:int?}"
 @model webGestionInventario.Pages.AgregarEditarProveedorModel
 @{
-    ViewData["Title"] = "Agregar/Editar";
+    // Cambiamos el título dinámicamente dependiendo de si estamos agregando o editando
+    ViewData["Title"] = Model.ProveedorActual.Id == 0 ? "Agregar Proveedor" : "Editar Proveedor";
 }
 
-<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-xl text-black font-bold mb-4">Agregar/Editar Proveedor</h1>
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md mt-5">
+    <h2 class="text-2xl font-bold mb-4 text-gray-800">
+        @(Model.ProveedorActual.Id == 0 ? "Agregar Proveedor" : "Actualizar Proveedor")
+    </h2>
 
-        <form method="post">
-        <label  class="block text-gray-700 font-bold mb-2">Nombre:</label>
-        <input asp-for="NuevoProveedor.Nombre" class="w-full border border-gray-300 rounded-md p-2 mb-4" />
+    <form method="post">
+        <input type="hidden" asp-for="ProveedorActual.Id" />
 
-        <label class="block text-gray-700 font-bold mb-2">Rut:</label>
-        <input asp-for="NuevoProveedor.Rut" class="w-full border border-gray-300 rounded-md p-2 mb-4" />
-        
-        <label class="block text-gray-700 font-bold mb-2">Telefono:</label>
-        <input asp-for="NuevoProveedor.Telefono" class="w-full border border-gray-300 rounded-md p-2 mb-4" />
+        <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2">Nombre:</label>
+            <input asp-for="ProveedorActual.Nombre" class="w-full border border-gray-300 rounded-md p-2"
+                   pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" title="Solo se permiten letras y espacios" required />
+        </div>
 
-        <label class="block text-gray-700 font-bold mb-2">Correo:</label>
-        <input asp-for="NuevoProveedor.Correo" type="email" class="w-full border border-gray-300 rounded-md p-2 mb-4" />
+        <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2">Rut:</label>
+            <input asp-for="ProveedorActual.Rut" class="w-full border border-gray-300 rounded-md p-2"
+                   pattern="[0-9]+-[0-9kK]{1}" title="Formato válido: 12345678-9 (sin puntos y con guion)" placeholder="12345678-9" required />
+        </div>
 
-        <label class="block text-gray-700 font-bold mb-2">Empresa:</label>
-        <input asp-for="NuevoProveedor.Empresa" class="w-full border border-gray-300 rounded-md p-2 mb-4" />
+        <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2">Teléfono:</label>
+            <input asp-for="ProveedorActual.Telefono" type="tel" class="w-full border border-gray-300 rounded-md p-2"
+                   pattern="[0-9]+" title="Solo se permiten números" required />
+        </div>
 
-        <label class="block text-gray-700 font-bold mb-2">Direccion:</label>
-        <input asp-for="NuevoProveedor.Direccion" class="w-full border border-gray-300 rounded-md p-2 mb-4" />
-        
-        <div class="flex flex-row gap-2 pt-8">
-            <button type="submit" class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">Guardar</button>
-            <a href="Proveedores" class="inline-block mt-4 bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition text-center" role="button">Cancelar</a>
+        <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2">Correo:</label>
+            <input asp-for="ProveedorActual.Correo" type="email" class="w-full border border-gray-300 rounded-md p-2"
+                   title="Debe ser un correo electrónico válido" placeholder="ejemplo@correo.com" required />
+        </div>
 
+        <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2">Empresa:</label>
+            <input asp-for="ProveedorActual.Empresa" class="w-full border border-gray-300 rounded-md p-2" required />
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 font-bold mb-2">Dirección:</label>
+            <input asp-for="ProveedorActual.Direccion" class="w-full border border-gray-300 rounded-md p-2" required />
+        </div>
+
+        <div class="flex flex-row gap-2">
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">
+                @(Model.ProveedorActual.Id == 0 ? "Guardar" : "Actualizar")
+            </button>
+            <a href="/Proveedores" class="inline-block bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition text-center no-underline">Cancelar</a>
         </div>
     </form>
-        
 </div>

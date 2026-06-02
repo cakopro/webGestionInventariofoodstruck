@@ -40,6 +40,10 @@ namespace webGestionInventario.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+       
+            ModelState.Remove("InsumoEditar.NombreProveedor");
+            ModelState.Remove("InsumoEditar.Estado");
+
             if (InsumoEditar.FechaCaducidad.Year < 1753)
             {
                 InsumoEditar.FechaCaducidad = System.DateTime.Today;
@@ -47,12 +51,10 @@ namespace webGestionInventario.Pages
 
             if (!ModelState.IsValid)
             {
-               
                 ListaProveedores = await _databaseHelper.ObtenerProveedores();
                 return Page();
             }
 
-          
             await _databaseHelper.UpdateInsumo(InsumoEditar);
 
             return RedirectToPage("./Insumos");

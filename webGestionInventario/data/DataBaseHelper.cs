@@ -76,6 +76,58 @@ namespace webGestionInventario.data
             }
         }
 
+        public async Task<Proveedores> ObtenerProveedorPorId(int id)
+        {
+            Proveedores proveedor = null;
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var command = new SqlCommand("SELECT * FROM Proveedores WHERE Id = @Id", connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        proveedor = new Proveedores
+                        {
+                            Id = (int)reader["Id"],
+                            Nombre = reader["Nombre"].ToString(),
+                            Telefono = reader["Telefono"].ToString(),
+                            Rut = reader["Rut"].ToString(),
+                            Correo = reader["Correo"].ToString(),
+                            Empresa = reader["Empresa"].ToString(),
+                            Direccion = reader["Direccion"].ToString(),
+                            Estado = (bool)reader["Estado"]
+                        };
+                    }
+                }
+            }
+            return proveedor;
+        }
+
+      
+        public async Task UpdateProveedor(Proveedores proveedor)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                string query = "UPDATE Proveedores SET Nombre = @Nombre, Telefono = @Telefono, Rut = @Rut, Correo = @Correo, Empresa = @Empresa, Direccion = @Direccion WHERE Id = @Id";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Nombre", proveedor.Nombre);
+                    command.Parameters.AddWithValue("@Telefono", proveedor.Telefono);
+                    command.Parameters.AddWithValue("@Rut", proveedor.Rut);
+                    command.Parameters.AddWithValue("@Correo", proveedor.Correo);
+                    command.Parameters.AddWithValue("@Empresa", proveedor.Empresa);
+                    command.Parameters.AddWithValue("@Direccion", proveedor.Direccion);
+                    command.Parameters.AddWithValue("@Id", proveedor.Id);
+
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         public async Task<List<Insumos>> ObtenerInsumos(bool mostrarInactivos = false)
         {
             var insumos = new List<Insumos>();
@@ -370,7 +422,7 @@ namespace webGestionInventario.data
                 {
                     try
                     {
-                        // Insertamos el Producto con el precio que acabamos de calcular
+                        
                         string sqlProducto = "INSERT INTO Productos (Nombre, PrecioVenta, estado) OUTPUT INSERTED.Id VALUES (@Nombre, @Precio, 1)";
                         int idProducto;
                         using (var cmd = new SqlCommand(sqlProducto, connection, transaction))
@@ -404,7 +456,7 @@ namespace webGestionInventario.data
             {
                 await connection.OpenAsync();
 
-                // Esta es la consulta que une ambas tablas
+              
                 string sql = @"
             SELECT i.Id, i.Nombre, r.CantidadRequerida, i.UnidadMedida
             FROM Recetas r
@@ -429,6 +481,101 @@ namespace webGestionInventario.data
                 }
             }
             return lista;
+        }
+
+        public async Task<Producto> ObtenerProductoPorId(int id)
+        {
+            Producto prod = null;
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var cmd = new SqlCommand("SELECT Id, Nombre, PrecioVenta FROM Productos WHERE Id = @Id", connection);
+                cmd.Parameters.AddWithValue("@Id", id);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        prod = new Producto
+                        {
+                            Id = Convert.ToInt32(reader["Id"]),
+                            Nombre = reader["Nombre"].ToString(),
+                            PrecioVenta = Convert.ToDecimal(reader["PrecioVenta"])
+                        };
+                    }
+                }
+            }
+            return prod;
+        }
+
+        public async Task UpdateProductoCalculado(int idProducto, string nombre, decimal precio, List<TempReceta> ingredientes)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                      
+                        string sqlProd = "UPDATE Productos SET Nombre = @Nombre, PrecioVenta = @Precio WHERE Id = @Id";
+                        using (var cmd = new SqlCommand(sqlProd, connection, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@Nombre", nombre);
+                            cmd.Parameters.AddWithValue("@Precio", precio);
+                            cmd.Parameters.AddWithValue("@Id", idProducto);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+                      
+                        string sqlDelReceta = "DELETE FROM Recetas WHERE Id_Producto = @Id";
+                        using (var cmd = new SqlCommand(sqlDelReceta, connection, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@Id", idProducto);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+                    
+                        foreach (var ing in ingredientes)
+                        {
+                            string sqlReceta = "INSERT INTO Recetas (Id_Producto, Id_Insumo, CantidadRequerida) VALUES (@IdProducto, @IdInsumo, @Cantidad)";
+                            using (var cmd = new SqlCommand(sqlReceta, connection, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@IdProducto", idProducto);
+                                cmd.Parameters.AddWithValue("@IdInsumo", ing.IdInsumo);
+                                cmd.Parameters.AddWithValue("@Cantidad", ing.Cantidad);
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                        }
+                        await transaction.CommitAsync();
+                    }
+                    catch { await transaction.RollbackAsync(); throw; }
+                }
+            }
+        }
+
+
+        public async Task<bool> ValidarUsuario(string nombreUsuario, string contrasena)
+        {
+            bool esValido = false;
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+             
+                string query = "SELECT COUNT(1) FROM Usuarios WHERE NombreUsuario = @NombreUsuario AND Contrasena = @Contrasena";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@NombreUsuario", nombreUsuario);
+                    command.Parameters.AddWithValue("@Contrasena", contrasena);
+
+                    int count = Convert.ToInt32(await command.ExecuteScalarAsync());
+                    if (count > 0)
+                    {
+                        esValido = true; 
+                    }
+                }
+            }
+            return esValido;
         }
 
 

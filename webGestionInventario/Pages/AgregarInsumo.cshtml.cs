@@ -32,7 +32,10 @@ namespace webGestionInventario.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+          
             ModelState.Remove("InsumoNuevo.NombreProveedor");
+            ModelState.Remove("InsumoNuevo.Estado");
+
             if (InsumoNuevo.FechaCaducidad.Year < 1753)
             {
                 InsumoNuevo.FechaCaducidad = System.DateTime.Today;

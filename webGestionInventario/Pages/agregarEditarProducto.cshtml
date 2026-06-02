@@ -1,17 +1,22 @@
-﻿@page
+﻿@page "{id:int?}"
 @model webGestionInventario.Pages.agregarEditarProductoModel
 @{
-    ViewData["Title"] = "Agregar/Editar Producto";
+   
+    ViewData["Title"] = Model.ProductoId == 0 ? "Nuevo Producto" : "Editar Producto";
 }
 
 <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200 mt-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">Nuevo Producto</h2>
-    
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+        @(Model.ProductoId == 0 ? "Nuevo Producto" : "Editar Producto")
+    </h2>
+
     <form method="post" class="space-y-6">
-        
+
+        <input type="hidden" asp-for="ProductoId" />
+
         <div>
             <label class="block text-sm font-medium text-gray-700">Nombre del Producto</label>
-            <input asp-for="NombreProducto" placeholder="Ej: Pastel de Chocolate" required 
+            <input asp-for="NombreProducto" placeholder="Ej: Pastel de Chocolate" required
                    class="w-full mt-1 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" />
         </div>
 
@@ -36,7 +41,7 @@
                     <input type="number" id="cantidadInput" step="any" placeholder="0"
                            class="w-full border border-gray-300 rounded-lg p-3 sin-flechas" />
                 </div>
-                <button type="button" onclick="agregarFila()" 
+                <button type="button" onclick="agregarFila()"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
                     Agregar
                 </button>
@@ -53,12 +58,15 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200" id="tbodyReceta">
-                    </tbody>
+                </tbody>
             </table>
         </div>
 
-        <div class="flex justify-end">
-            <button type="submit" asp-page-handler="Guardar" 
+        <div class="flex justify-end gap-3">
+            <a href="/Productos" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition flex items-center no-underline">
+                Cancelar
+            </a>
+            <button type="submit" asp-page-handler="Guardar"
                     class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-10 rounded-lg shadow-md transition">
                 Guardar Producto Final
             </button>
@@ -72,13 +80,13 @@
          function agregarFila() {
                 let select = document.getElementById('insumoSelect');
                 let cant = document.getElementById('cantidadInput').value;
-    
+
                 let cantidadNumerica = parseFloat(cant);
                 if(!cant || isNaN(cantidadNumerica) || cantidadNumerica <= 0) return;
 
                 let option = select.options[select.selectedIndex];
                 receta.push({
-                    IdInsumo: parseInt(select.value, 10), 
+                    IdInsumo: parseInt(select.value, 10),
                     NombreInsumo: option.getAttribute('data-nombre'),
                     Cantidad: cantidadNumerica,
                     UnidadMedida: option.getAttribute('data-unidad')
@@ -98,13 +106,13 @@
                         <td class="px-6 py-4 font-medium text-gray-900">${item.NombreInsumo}</td>
                         <td class="px-6 py-4 text-gray-600">${item.Cantidad} ${item.UnidadMedida}</td>
                         <td class="px-6 py-4 text-center">
-                            <button type="button" onclick="quitarFila(${index})" 
+                            <button type="button" onclick="quitarFila(${index})"
                                     class="text-red-600 hover:text-red-800 font-bold">Eliminar</button>
                         </td>
                     </tr>`;
             });
         }
-        
+
         function quitarFila(index) {
             receta.splice(index, 1);
             document.getElementById('jsonReceta').value = JSON.stringify(receta);

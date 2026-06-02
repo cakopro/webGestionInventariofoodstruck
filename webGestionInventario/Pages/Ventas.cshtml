@@ -6,7 +6,7 @@
 
 <div class="max-w-7xl mx-auto p-6 space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+
         <div class="md:col-span-1 bg-white p-6 rounded-lg shadow-md border">
             <h2 class="text-xl font-bold mb-4 text-gray-700">Seleccionar Producto</h2>
             <div class="space-y-4">
@@ -30,9 +30,24 @@
 
         <div class="md:col-span-2 bg-white p-6 rounded-lg shadow-md border">
             <h2 class="text-xl font-bold mb-4 text-gray-700">Detalle de la Venta</h2>
+
+            @if (!ModelState.IsValid)
+            {
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+                    <div asp-validation-summary="All"></div>
+                </div>
+            }
+
+            @if (Request.Query["success"] == "true")
+            {
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+                    <strong>¡Venta Registrada!</strong> Los insumos han sido descontados correctamente del inventario.
+                </div>
+            }
+
             <form method="post" id="formVenta">
                 <input type="hidden" asp-for="DetallesJson" id="inputDetallesJson" />
-                
+
                 <table class="w-full text-sm text-left border mb-4">
                     <thead class="bg-gray-100 uppercase">
                         <tr><th class="p-2 border">Producto</th><th class="p-2 border text-center">Cant</th><th class="p-2 border text-right">Precio</th><th class="p-2 border text-right">Subtotal</th></tr>
@@ -53,7 +68,6 @@
     </div>
 </div>
 
- 
 @section Scripts {
     <script>
         let detalles = [];
@@ -61,22 +75,21 @@
         document.getElementById('btnAgregar').addEventListener('click', function() {
             const select = document.getElementById('selectProducto');
             const inputCant = document.getElementById('inputCantidad');
-            
-            
+
             if (select.value === "") {
                 alert("Por favor, selecciona un producto");
                 return;
             }
 
-            const id = select.value;
+            
+            const id = parseInt(select.value, 10);
             const nombre = select.options[select.selectedIndex].text.split(' ($')[0];
             const precio = parseFloat(select.options[select.selectedIndex].getAttribute('data-precio'));
-            const cantidad = parseInt(inputCant.value);
+            const cantidad = parseInt(inputCant.value, 10);
             const subtotal = precio * cantidad;
 
-            
             detalles.push({ IdProducto: id, Producto: nombre, Precio: precio, Cantidad: cantidad, Subtotal: subtotal });
-            
+
             renderTabla();
         });
 
@@ -96,7 +109,6 @@
                     </tr>`;
             });
 
-            
             const iva = totalGeneral * 0.19;
             const total = totalGeneral + iva;
 
