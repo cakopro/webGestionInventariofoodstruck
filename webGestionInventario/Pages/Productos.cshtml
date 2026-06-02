@@ -2,7 +2,6 @@
 @model webGestionInventario.Pages.ProductosModel
 @{
     ViewData["Title"] = "Productos";
-
 }
 
 <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
@@ -18,20 +17,26 @@
         </thead>
 
         <tbody>
-            <tr class="border-b hover:bg-gray-100 transition">
-                <td class="p-3">1</td>
-                <td class="p-3">Completo</td>
-                <td class="p-3">1500</td>
-            
-                <td class="p-3 border flex justify-center gap-2">
-                    <button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">eliminar</button>
-                    <button class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">actualizar</button>
-                </td>
-            </tr>
+            @foreach (var item in Model.ListaProductos)
+            {
+                <tr class="border-b hover:bg-gray-200 transition cursor-pointer" onclick="cargarIngredientes(@item.Id)">
+                    <td class="p-3">@item.Id</td>
+                    <td class="p-3">@item.Nombre</td>
+                    <td class="p-3">@item.PrecioVenta</td>
+                    
+                    <td class="p-3 text-center flex justify-center gap-2" onclick="event.stopPropagation()">
+                        <a href="AgregarEditarProveedor?id=@item.Id" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">actualizar</a>
 
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id" style="display:inline;">
+                            <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
-    <h1 class="text-xl text-black font-bold mb-4">Lista Ingredientes</h1>
+
+    <h1 class="text-xl text-black font-bold mb-4 mt-8">Lista Ingredientes</h1>
     <table class="table-auto w-full border-collapse">
         <thead>
             <tr class="border p-2">
@@ -41,16 +46,39 @@
             </tr>
         </thead>
 
-        <tbody>
-            <tr class="border-b hover:bg-gray-100 transition">
-                <td class="p-3">vienesa</td>
-                <td class="p-3">123</td>
-                <td class="p-3">Unidades</td>
+        <tbody id="body-ingredientes" class="border-b hover:bg-gray-100 transition">
+            <tr>
+                <td colspan="3" class="p-3 text-center text-gray-500">Haz clic en un producto para ver sus ingredientes</td>
             </tr>
-
         </tbody>
     </table>
-    <a href="AgregarEditarProducto" class="inline-block mt-4 bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition text-center" role="button">Agregar</a>
 
+    <a href="AgregarEditarProducto" class="inline-block mt-4 bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition text-center" role="button">Agregar</a>
 </div>
+
+<script>
+    function cargarIngredientes(id) {
+        
+        fetch(`?handler=CargarIngredientes&id=${id}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById("body-ingredientes");
+                tbody.innerHTML = "";
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="p-3 text-center">No tiene ingredientes registrados</td></tr>';
+                } else {
+                    data.forEach(item => {
+                        tbody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-3">${item.nombre}</td>
+                                <td class="p-3">${item.cantidad}</td>
+                                <td class="p-3">${item.unidad}</td>
+                            </tr>`;
+                    });
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
 

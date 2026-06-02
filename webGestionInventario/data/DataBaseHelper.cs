@@ -360,5 +360,77 @@ namespace webGestionInventario.data
             }
             return productos;
         }
+
+        public async Task GuardarProductoCalculado(string nombre, decimal precio, List<TempReceta> ingredientes)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        // Insertamos el Producto con el precio que acabamos de calcular
+                        string sqlProducto = "INSERT INTO Productos (Nombre, PrecioVenta, estado) OUTPUT INSERTED.Id VALUES (@Nombre, @Precio, 1)";
+                        int idProducto;
+                        using (var cmd = new SqlCommand(sqlProducto, connection, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@Nombre", nombre);
+                            cmd.Parameters.AddWithValue("@Precio", precio);
+                            idProducto = (int)await cmd.ExecuteScalarAsync();
+                        }
+
+                        foreach (var ing in ingredientes)
+                        {
+                            string sqlReceta = "INSERT INTO Recetas (Id_Producto, Id_Insumo, CantidadRequerida) VALUES (@IdProducto, @IdInsumo, @Cantidad)";
+                            using (var cmd = new SqlCommand(sqlReceta, connection, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@IdProducto", idProducto);
+                                cmd.Parameters.AddWithValue("@IdInsumo", ing.IdInsumo);
+                                cmd.Parameters.AddWithValue("@Cantidad", ing.Cantidad);
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                        }
+                        await transaction.CommitAsync();
+                    }
+                    catch { await transaction.RollbackAsync(); throw; }
+                }
+            }
+        }
+        public async Task<List<Receta>> ObtenerIngredientesPorProducto(int idProducto)
+        {
+            var lista = new List<Receta>();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Esta es la consulta que une ambas tablas
+                string sql = @"
+            SELECT i.Id, i.Nombre, r.CantidadRequerida, i.UnidadMedida
+            FROM Recetas r
+            INNER JOIN Insumos i ON r.Id_Insumo = i.Id
+            WHERE r.Id_Producto = @IdProducto";
+
+                var command = new SqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@IdProducto", idProducto);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        lista.Add(new Receta
+                        {
+                            Id = (int)reader["Id"],
+                            Nombre = reader["Nombre"].ToString(),
+                            Cantidad = Convert.ToSingle(reader["CantidadRequerida"]),
+                            Unidad = reader["UnidadMedida"].ToString()
+                        });
+                    }
+                }
+            }
+            return lista;
+        }
+
+
     }
 }

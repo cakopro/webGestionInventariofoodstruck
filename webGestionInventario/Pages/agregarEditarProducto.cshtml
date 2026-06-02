@@ -2,54 +2,113 @@
 @model webGestionInventario.Pages.agregarEditarProductoModel
 @{
     ViewData["Title"] = "Agregar/Editar Producto";
-
 }
-<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6">
 
-    <div class="grid grid-cols-3 gap-6 p-4 border-b">
-        <div class="block text-sm font-medium">
-            <label class="block text-sm font-medium">Nombre</label>
-            <input type="text" class="w-full border p-2 rounded" value="0">
-
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200 mt-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Nuevo Producto</h2>
+    
+    <form method="post" class="space-y-6">
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Nombre del Producto</label>
+            <input asp-for="NombreProducto" placeholder="Ej: Pastel de Chocolate" required 
+                   class="w-full mt-1 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" />
         </div>
-        <div><label class="block text-sm font-medium">Ingrediente:</label>
-            <select class="w-full border p-2 rounded"><option>Seleccionar...</option></select></div>
-        <div><label class="block text-sm font-medium">Cantidad requerida:</label>
-            <input type="number" class="w-full border p-2 rounded" value="0"></div>
-        <div><label class="block text-sm font-medium">Precio:</label></div>
-    </div>
-    <div class="flex gap-4">
-        <div class="flex-1">
-            <h2 class="font-bold mb-2">Receta:</h2>
-            <table class="w-full text-sm text-left border">
-                <thead class="bg-gray-100 uppercase">
-                    <tr><th class="p-2 border">Insumo</th>
-                        <th class="p-2 border">Cantidad</th>
-                        <th class="p-2 border">Medida unidad</th>
-                        <th class="p-3 text-center">Acciones</th>
+
+        <input type="hidden" id="jsonReceta" name="JsonReceta" value="@Model.JsonReceta" />
+
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-700 mb-3">Agregar Ingredientes</h3>
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-xs text-gray-500">Seleccionar Insumo</label>
+                    <select id="insumoSelect" class="w-full border border-gray-300 rounded-lg p-3">
+                        @foreach (var i in Model.ListaInsumos)
+                        {
+                            <option value="@i.Id" data-nombre="@i.Nombre" data-unidad="@i.UnidadMedida">
+                                @i.Nombre (@i.UnidadMedida)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="w-32">
+                    <label class="block text-xs text-gray-500">Cantidad</label>
+                    <input type="number" id="cantidadInput" step="any" placeholder="0"
+                           class="w-full border border-gray-300 rounded-lg p-3 sin-flechas" />
+                </div>
+                <button type="button" onclick="agregarFila()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+                    Agregar
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-hidden border border-gray-200 rounded-lg">
+            <table id="tablaReceta" class="w-full text-left border-collapse">
+                <thead class="bg-gray-100 text-gray-600 uppercase text-sm">
+                    <tr>
+                        <th class="px-6 py-3">Insumo</th>
+                        <th class="px-6 py-3">Cantidad</th>
+                        <th class="px-6 py-3 text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr class="border-b">
-                        <td class="p-2 border">Vienesa</td>
-                        <td class="p-2 border">2</td>
-                        <td class="p-2 border">unidades</td>
-                        <td class="p-3 border flex justify-center gap-2">
-                            <button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">eliminar</button>
-                            <button class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">actualizar</button>
-                        </td>
-                    </tr>
-                </tbody>
+                <tbody class="divide-y divide-gray-200" id="tbodyReceta">
+                    </tbody>
             </table>
         </div>
-        <div class="flex flex-col gap-2 pt-8">
-            <button class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">Agregar</button>
-            <button class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Guardar</button>
-            <a href="Productos" class="inline-block mt-4 bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition text-center" role="button">Cancelar</a>
 
-
+        <div class="flex justify-end">
+            <button type="submit" asp-page-handler="Guardar" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-10 rounded-lg shadow-md transition">
+                Guardar Producto Final
+            </button>
         </div>
-    </div>
+    </form>
 
+    <script>
+        let receta = JSON.parse(document.getElementById('jsonReceta').value || '[]');
+        renderizarTabla();
 
+         function agregarFila() {
+                let select = document.getElementById('insumoSelect');
+                let cant = document.getElementById('cantidadInput').value;
+    
+                let cantidadNumerica = parseFloat(cant);
+                if(!cant || isNaN(cantidadNumerica) || cantidadNumerica <= 0) return;
+
+                let option = select.options[select.selectedIndex];
+                receta.push({
+                    IdInsumo: parseInt(select.value, 10), 
+                    NombreInsumo: option.getAttribute('data-nombre'),
+                    Cantidad: cantidadNumerica,
+                    UnidadMedida: option.getAttribute('data-unidad')
+                });
+
+                document.getElementById('jsonReceta').value = JSON.stringify(receta);
+                renderizarTabla();
+                document.getElementById('cantidadInput').value = '';
+            }
+
+        function renderizarTabla() {
+            let tbody = document.querySelector('#tbodyReceta');
+            tbody.innerHTML = '';
+            receta.forEach((item, index) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-900">${item.NombreInsumo}</td>
+                        <td class="px-6 py-4 text-gray-600">${item.Cantidad} ${item.UnidadMedida}</td>
+                        <td class="px-6 py-4 text-center">
+                            <button type="button" onclick="quitarFila(${index})" 
+                                    class="text-red-600 hover:text-red-800 font-bold">Eliminar</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+        
+        function quitarFila(index) {
+            receta.splice(index, 1);
+            document.getElementById('jsonReceta').value = JSON.stringify(receta);
+            renderizarTabla();
+        }
+    </script>
 </div>
