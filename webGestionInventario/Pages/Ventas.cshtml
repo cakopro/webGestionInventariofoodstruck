@@ -16,7 +16,7 @@
                         <option value="">-- Seleccione --</option>
                         @foreach (var p in Model.ListaProductos)
                         {
-                            <option value="@p.Id" data-precio="@p.PrecioVenta">@p.Nombre ($@p.PrecioVenta)</option>
+                            <option value="@p.Id" data-precio="@p.PrecioVenta">@p.Nombre ($@p.PrecioVenta.ToString("N0", new System.Globalization.CultureInfo("es-CL")))</option>
                         }
                     </select>
                 </div>
@@ -104,16 +104,17 @@
                     <tr>
                         <td class="p-2 border">${item.Producto}</td>
                         <td class="p-2 border text-center">${item.Cantidad}</td>
-                        <td class="p-2 border text-right">$${item.Precio.toFixed(0)}</td>
-                        <td class="p-2 border text-right">$${item.Subtotal.toFixed(0)}</td>
+                        <td class="p-2 border text-right">$${item.Precio.toLocaleString('es-CL')}</td>
+                        <td class="p-2 border text-right">$${item.Subtotal.toLocaleString('es-CL')}</td>
                     </tr>`;
             });
 
             const iva = totalGeneral * 0.19;
             const total = totalGeneral + iva;
 
-            document.getElementById('resumenIVA').innerText = `$${iva.toFixed(0)}`;
-            document.getElementById('resumenTotal').innerText = `$${total.toFixed(0)}`;
+            // También formateamos el IVA y el Total
+            document.getElementById('resumenIVA').innerText = `$${iva.toLocaleString('es-CL')}`;
+            document.getElementById('resumenTotal').innerText = `$${total.toLocaleString('es-CL')}`;
             document.getElementById('inputDetallesJson').value = JSON.stringify(detalles);
         }
     </script>

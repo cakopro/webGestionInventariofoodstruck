@@ -16,19 +16,21 @@
         <div class="mb-4">
             <label class="block text-gray-700 font-bold mb-2">Nombre:</label>
             <input asp-for="ProveedorActual.Nombre" class="w-full border border-gray-300 rounded-md p-2"
-                   pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" title="Solo se permiten letras y espacios" required />
+                   oninput="this.value = this.value.replace(/[^a-zA-ZñÑáéíóúÁÉÍÓÚ\s]/g, '')"
+                   placeholder="Ej: Juan Pérez" required />
         </div>
 
         <div class="mb-4">
             <label class="block text-gray-700 font-bold mb-2">Rut:</label>
             <input asp-for="ProveedorActual.Rut" class="w-full border border-gray-300 rounded-md p-2"
-                   pattern="[0-9]+-[0-9kK]{1}" title="Formato válido: 12345678-9 (sin puntos y con guion)" placeholder="12345678-9" required />
+                   oninput="formatearRut(this)" placeholder="12.345.678-9" required />
         </div>
 
         <div class="mb-4">
             <label class="block text-gray-700 font-bold mb-2">Teléfono:</label>
             <input asp-for="ProveedorActual.Telefono" type="tel" class="w-full border border-gray-300 rounded-md p-2"
-                   pattern="[0-9]+" title="Solo se permiten números" required />
+                   onfocus="if(this.value === '') this.value = '+569 ';"
+                   oninput="formatearTelefono(this)" placeholder="+569 12345678" required />
         </div>
 
         <div class="mb-4">
@@ -54,4 +56,49 @@
             <a href="/Proveedores" class="inline-block bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition text-center no-underline">Cancelar</a>
         </div>
     </form>
+    <script>
+       
+        function formatearRut(input) {
+         
+            let valor = input.value.replace(/[^0-9kK]/g, '').toUpperCase();
+
+          
+            if (valor.length === 0) {
+                input.value = '';
+                return;
+            }
+
+        
+            let cuerpo = valor.slice(0, -1);
+            let dv = valor.slice(-1);
+
+           
+            if (cuerpo.length > 0) {
+             
+                cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                input.value = cuerpo + '-' + dv;
+            } else {
+                input.value = valor;
+            }
+        }
+
+      
+        function formatearTelefono(input) {
+         
+            if (!input.value.startsWith("+569 ")) {
+                
+                let numeros = input.value.replace(/[^0-9]/g, '');
+                
+                if (numeros.startsWith("569")) numeros = numeros.slice(3);
+
+                input.value = "+569 " + numeros.slice(0, 8);
+            } else {
+             
+                let extra = input.value.slice(5).replace(/[^0-9]/g, '').slice(0, 8);
+                input.value = "+569 " + extra;
+            }
+        }
+    </script>
+
+
 </div>

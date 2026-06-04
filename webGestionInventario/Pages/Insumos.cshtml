@@ -35,7 +35,7 @@
                     <td class="p-3">@item.Nombre</td>
                     <td class="p-3">@item.StockActual</td>
                     <td class="p-3">@item.UnidadMedida</td>
-                    <td class="p-3">$@item.PrecioUnitario</td>
+                    <td class="p-3">$@item.PrecioUnitario.ToString("N0", new System.Globalization.CultureInfo("es-CL"))</td>
                     <td class="p-3">@item.FechaCaducidad.ToShortDateString()</td>
                     <td class="p-3">@item.NombreProveedor</td>
 

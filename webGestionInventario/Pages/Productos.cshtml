@@ -22,7 +22,7 @@
                 <tr class="border-b hover:bg-gray-200 transition cursor-pointer" onclick="cargarIngredientes(@item.Id)">
                     <td class="p-3">@item.Id</td>
                     <td class="p-3">@item.Nombre</td>
-                    <td class="p-3">@item.PrecioVenta</td>
+                    <td class="p-3">$@item.PrecioVenta.ToString("N0", new System.Globalization.CultureInfo("es-CL"))</td>
                     
                     <td class="p-3 text-center flex justify-center gap-2" onclick="event.stopPropagation()">
                         <a href="AgregarEditarProducto?id=@item.Id" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">actualizar</a>

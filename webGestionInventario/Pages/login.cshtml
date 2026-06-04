@@ -40,14 +40,20 @@
                     <input asp-for="NombreUsuario" type="text" class="form-control" placeholder="Ingrese usuario" required />
                 </div>
 
-                <div class="mb-3 text-start">
+                <div class="mb-4 text-start">
                     <label class="form-label">Contraseña:</label>
-                    <input asp-for="Contrasena" type="password" id="inputContrasena" class="form-control" placeholder="Ingrese contraseña" required />
-                </div>
+                    <div class="input-group">
+                        <input asp-for="Contrasena" type="password" id="inputContrasena" class="form-control border-end-0" placeholder="Ingrese contraseña" required />
 
-                <div class="mb-4 text-start form-check">
-                    <input type="checkbox" class="form-check-input" id="mostrarPass" onchange="document.getElementById('inputContrasena').type = this.checked ? 'text' : 'password'">
-                    <label class="form-check-label" for="mostrarPass">mostrar</label>
+                        <button class="btn border border-start-0" type="button" id="btnMostrarOjo" onclick="togglePassword()" style="background-color: white; color: #6c757d;">
+
+                            <svg id="iconoOjo" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+                                <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+                            </svg>
+
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-success w-100 fw-bold py-2">Ingresar</button>
@@ -55,6 +61,19 @@
 
         </div>
     </div>
+
+    <script>
+        function togglePassword() {
+            let input = document.getElementById('inputContrasena');
+
+        
+            if (input.type === 'password') {
+                input.type = 'text';
+            } else {
+                input.type = 'password';
+            }
+        }
+    </script>
 
 </body>
 </html>
