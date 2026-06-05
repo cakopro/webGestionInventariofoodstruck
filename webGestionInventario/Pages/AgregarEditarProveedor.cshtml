@@ -1,7 +1,6 @@
 ﻿@page "{id:int?}"
 @model webGestionInventario.Pages.AgregarEditarProveedorModel
 @{
-    // Cambiamos el título dinámicamente dependiendo de si estamos agregando o editando
     ViewData["Title"] = Model.ProveedorActual.Id == 0 ? "Agregar Proveedor" : "Editar Proveedor";
 }
 
@@ -26,11 +25,21 @@
                    oninput="formatearRut(this)" placeholder="12.345.678-9" required />
         </div>
 
+        @if (!string.IsNullOrEmpty(Model.MensajeError))
+        {
+            <div class="alert alert-danger p-2" role="alert">
+                @Model.MensajeError
+            </div>
+        }
+
         <div class="mb-4">
             <label class="block text-gray-700 font-bold mb-2">Teléfono:</label>
             <input asp-for="ProveedorActual.Telefono" type="tel" class="w-full border border-gray-300 rounded-md p-2"
-                   onfocus="if(this.value === '') this.value = '+569 ';"
-                   oninput="formatearTelefono(this)" placeholder="+569 12345678" required />
+                   pattern="\+\d{7,14}"
+                   maxlength="15"
+                   placeholder="+56912345678"
+                   onfocus="if(this.value === '') this.value = '+';"
+                   oninput="formatearTelefono(this)" required />
         </div>
 
         <div class="mb-4">
@@ -41,12 +50,13 @@
 
         <div class="mb-4">
             <label class="block text-gray-700 font-bold mb-2">Empresa:</label>
-            <input asp-for="ProveedorActual.Empresa" class="w-full border border-gray-300 rounded-md p-2" required />
+            <input asp-for="ProveedorActual.Empresa" class="w-full border border-gray-300 rounded-md p-2"
+                   placeholder="Ej: Empresa S.A." required />
         </div>
 
         <div class="mb-6">
             <label class="block text-gray-700 font-bold mb-2">Dirección:</label>
-            <input asp-for="ProveedorActual.Direccion" class="w-full border border-gray-300 rounded-md p-2" required />
+            <input asp-for="ProveedorActual.Direccion" class="w-full border border-gray-300 rounded-md p-2" placeholder="Ej: Calle falsa 123" required />
         </div>
 
         <div class="flex flex-row gap-2">
@@ -83,21 +93,26 @@
         }
 
       
-        function formatearTelefono(input) {
-         
-            if (!input.value.startsWith("+569 ")) {
-                
-                let numeros = input.value.replace(/[^0-9]/g, '');
-                
-                if (numeros.startsWith("569")) numeros = numeros.slice(3);
+                    function formatearTelefono(input) {
+                let valor = input.value;
 
-                input.value = "+569 " + numeros.slice(0, 8);
-            } else {
-             
-                let extra = input.value.slice(5).replace(/[^0-9]/g, '').slice(0, 8);
-                input.value = "+569 " + extra;
+                if (valor === "") {
+                    input.value = "+";
+                    return;
+                }
+
+                if (!valor.startsWith('+')) {
+                    valor = '+' + valor.replace(/[^0-9]/g, '');
+                } else {
+                    let numeros = valor.substring(1).replace(/[^0-9]/g, '');
+                    valor = '+' + numeros;
+                }
+                if (valor.length > 15) {
+                    valor = valor.substring(0, 15);
+                }
+
+                input.value = valor;
             }
-        }
     </script>
 
 

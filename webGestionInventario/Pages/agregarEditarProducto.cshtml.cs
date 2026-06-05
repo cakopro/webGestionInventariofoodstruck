@@ -39,7 +39,8 @@ namespace webGestionInventario.Pages
                         IdInsumo = r.Id,
                         NombreInsumo = r.Nombre,
                         Cantidad = r.Cantidad,
-                        UnidadMedida = r.Unidad
+                        UnidadMedida = r.Unidad,
+                        Precio = ListaInsumos.FirstOrDefault(i => i.Id == r.Id)?.PrecioUnitario ?? 0
                     }).ToList();
 
                
@@ -52,33 +53,32 @@ namespace webGestionInventario.Pages
         {
             var listaFinal = JsonSerializer.Deserialize<List<TempReceta>>(JsonReceta);
 
+
             if (listaFinal != null && listaFinal.Count > 0)
             {
                 var todosLosInsumos = await _db.ObtenerInsumos();
-                decimal precioCalculado = 0;
+                decimal costoBase = 0;
 
-               
+
                 foreach (var item in listaFinal)
                 {
                     var insumo = todosLosInsumos.FirstOrDefault(i => i.Id == item.IdInsumo);
                     if (insumo != null)
                     {
-                        precioCalculado += (insumo.PrecioUnitario * (decimal)item.Cantidad);
+                        costoBase += (insumo.PrecioUnitario * (decimal)item.Cantidad);
                     }
                 }
 
-               
-                if (ProductoId > 0)
-                {
-                    await _db.UpdateProductoCalculado(ProductoId, NombreProducto, precioCalculado, listaFinal);
-                }
-                else
-                {
-                    await _db.GuardarProductoCalculado(NombreProducto, precioCalculado, listaFinal);
-                }
-            }
+                decimal precioFinalConUtilidad = costoBase * 1.20m;
 
-            return RedirectToPage("Productos");
+                if (ProductoId > 0)
+                    await _db.UpdateProductoCalculado(ProductoId, NombreProducto, precioFinalConUtilidad, listaFinal);
+                else
+                    await _db.GuardarProductoCalculado(NombreProducto, precioFinalConUtilidad, listaFinal);
+
+                return RedirectToPage("Productos");
+            }
+            return Page();
         }
     }
 }

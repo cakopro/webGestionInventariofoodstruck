@@ -30,21 +30,32 @@
                     <select id="insumoSelect" class="w-full border border-gray-300 rounded-lg p-3">
                         @foreach (var i in Model.ListaInsumos)
                         {
-                            <option value="@i.Id" data-nombre="@i.Nombre" data-unidad="@i.UnidadMedida">
-                                @i.Nombre (@i.UnidadMedida)
+                            <option value="@i.Id" data-nombre="@i.Nombre" data-unidad="@i.UnidadMedida" data-precio="@i.PrecioUnitario">
+                                @i.Nombre (@i.UnidadMedida) - $@i.PrecioUnitario
                             </option>
                         }
                     </select>
                 </div>
                 <div class="w-32">
                     <label class="block text-xs text-gray-500">Cantidad</label>
-                    <input type="number" id="cantidadInput" step="any" placeholder="0"
+                    <input type="number" id="cantidadInput" min= 0 step="any" placeholder="0"
                            class="w-full border border-gray-300 rounded-lg p-3 sin-flechas" />
                 </div>
                 <button type="button" onclick="agregarFila()"
                         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
                     Agregar
                 </button>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-gray-100 rounded-lg border border-gray-200">
+                    <span class="text-sm text-gray-500 block">Costo de Insumos:</span>
+                    <span id="displayCosto" class="text-xl font-bold text-gray-800">$0</span>
+                </div>
+                <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <span class="text-sm text-green-700 block">Precio Final (con 20% utilidad):</span>
+                    <span id="displayFinal" class="text-2xl font-bold text-green-900">$0</span>
+                </div>
             </div>
         </div>
 
@@ -74,9 +85,28 @@
     </form>
 
     <script>
+                const formatter = new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP',
+                maximumFractionDigits: 0,
+            });
         let receta = JSON.parse(document.getElementById('jsonReceta').value || '[]');
         renderizarTabla();
+            calcularTotal();
 
+         function calcularTotal() {
+                let costoBase = 0;
+                const factorUtilidad = 1.20; 
+
+                receta.forEach(item => {
+                costoBase += (item.Precio * item.Cantidad);
+                });
+
+                let precioFinal = costoBase * factorUtilidad;
+
+                document.getElementById('displayCosto').innerText = formatter.format(costoBase);
+                document.getElementById('displayFinal').innerText = formatter.format(precioFinal);
+                }
          function agregarFila() {
                 let select = document.getElementById('insumoSelect');
                 let cant = document.getElementById('cantidadInput').value;
@@ -88,12 +118,14 @@
                 receta.push({
                     IdInsumo: parseInt(select.value, 10),
                     NombreInsumo: option.getAttribute('data-nombre'),
+                        Precio: parseFloat(option.getAttribute('data-precio')),
                     Cantidad: cantidadNumerica,
                     UnidadMedida: option.getAttribute('data-unidad')
                 });
 
                 document.getElementById('jsonReceta').value = JSON.stringify(receta);
                 renderizarTabla();
+                    calcularTotal();
                 document.getElementById('cantidadInput').value = '';
             }
 
@@ -117,6 +149,7 @@
             receta.splice(index, 1);
             document.getElementById('jsonReceta').value = JSON.stringify(receta);
             renderizarTabla();
+                calcularTotal();
         }
     </script>
 </div>

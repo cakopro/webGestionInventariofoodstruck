@@ -44,6 +44,48 @@ namespace webGestionInventario.data
             }
             return proveedores;
         }
+        public async Task<List<Producto>> ObtenerProductos(bool mostrarInactivos = false)
+        {
+            var productos = new List<Producto>();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                int estadoFiltro = mostrarInactivos ? 0 : 1;
+
+                var command = new SqlCommand("SELECT Id, Nombre, PrecioVenta FROM Productos " +
+                    "WHERE estado = @estado", connection);
+                command.Parameters.AddWithValue("@estado", estadoFiltro);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        productos.Add(new Producto
+                        {
+                            Id = Convert.ToInt32(reader["Id"]),
+                            Nombre = reader["Nombre"]?.ToString() ?? "Sin Nombre",
+                            PrecioVenta = reader["PrecioVenta"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioVenta"]) : 0m
+                        });
+                    }
+                }
+            }
+            return productos;
+        }
+
+        public async Task DeleteProductos(int id)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+                string query = "UPDATE Productos SET estado = 0 WHERE Id = @Id";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         public async Task InsertProveedor(Proveedores provedor)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -388,31 +430,7 @@ namespace webGestionInventario.data
             }
         }
 
-        public async Task<List<Producto>> ObtenerProductos()
-        {
-            var productos = new List<Producto>();
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-                
-                var command = new SqlCommand("SELECT Id, Nombre, PrecioVenta FROM Productos", connection);
-
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        productos.Add(new Producto
-                        {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Nombre = reader["Nombre"]?.ToString() ?? "Sin Nombre",
-                            PrecioVenta = reader["PrecioVenta"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioVenta"]) : 0m
-                        });
-                    }
-                }
-            }
-            return productos;
-        }
-
+        
         public async Task GuardarProductoCalculado(string nombre, decimal precio, List<TempReceta> ingredientes)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -572,6 +590,29 @@ namespace webGestionInventario.data
                     if (count > 0)
                     {
                         esValido = true; 
+                    }
+                }
+            }
+            return esValido;
+        }
+
+        public async Task<bool> RutExiste(string rut, int id)
+        {
+            bool esValido = false;
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = "SELECT COUNT(1) FROM Proveedores WHERE Rut = @rut AND Id != @id";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@rut", rut);
+                    command.Parameters.AddWithValue("@id", id);
+                    int count = Convert.ToInt32(await command.ExecuteScalarAsync());
+                    if (count > 0)
+                    {
+                        esValido = true;
                     }
                 }
             }

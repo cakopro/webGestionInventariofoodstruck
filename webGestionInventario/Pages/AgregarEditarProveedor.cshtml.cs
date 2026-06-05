@@ -19,7 +19,9 @@ namespace webGestionInventario.Pages
         [BindProperty]
         public Proveedores ProveedorActual { get; set; } = new Proveedores();
 
-       
+        public string MensajeError { get; set; }
+
+
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id.HasValue)
@@ -44,7 +46,15 @@ namespace webGestionInventario.Pages
                 return Page();
             }
 
-           
+            if (await _databaseHelper.RutExiste(ProveedorActual.Rut, ProveedorActual.Id))
+            {
+                MensajeError = "Ya existe un proveedor registrado con este RUT.";
+                ModelState.AddModelError("ProveedorActual.Rut", "Ya existe un proveedor registrado con este RUT.");
+                return Page();
+            }
+
+
+
             if (ProveedorActual.Id == 0)
             {
                 ProveedorActual.Estado = true; 

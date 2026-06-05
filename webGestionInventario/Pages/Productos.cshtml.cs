@@ -16,9 +16,12 @@ namespace webGestionInventario.Pages
         }
         public List<Producto> ListaProductos { get; set; } = new List<Producto>();
 
+        [BindProperty(SupportsGet = true)]
+        public bool MostrarInactivos { get; set; }
+
         public async Task OnGetAsync()
         {
-            ListaProductos = await _databaseHelper.ObtenerProductos() ?? new List<Producto>();
+            ListaProductos = await _databaseHelper.ObtenerProductos(MostrarInactivos);
         }
 
         public async Task<JsonResult> OnGetCargarIngredientesAsync(int id)
@@ -26,6 +29,12 @@ namespace webGestionInventario.Pages
             var ingredientes = await _databaseHelper.ObtenerIngredientesPorProducto(id);
 
             return new JsonResult(ingredientes);
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        {
+            await _databaseHelper.DeleteProductos(id);
+            return RedirectToPage();
         }
     }
 }
