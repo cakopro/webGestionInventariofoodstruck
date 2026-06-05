@@ -346,15 +346,14 @@ namespace webGestionInventario.data
                     {
                         
                         string insertVentaQuery = @"
-                            INSERT INTO Ventas (NombreCliente, Fecha, IVA, Total) 
-                            OUTPUT INSERTED.Id 
-                            VALUES (@NombreCliente, @Fecha, @IVA, @Total)";
+                    INSERT INTO Ventas (NombreCliente, IVA, Total) 
+                    OUTPUT INSERTED.Id 
+                    VALUES (@NombreCliente, @IVA, @Total)";
 
                         int ventaId;
                         using (var cmdVenta = new SqlCommand(insertVentaQuery, connection, transaction))
                         {
                             cmdVenta.Parameters.AddWithValue("@NombreCliente", (object)venta.NombreCliente ?? DBNull.Value);
-                            cmdVenta.Parameters.AddWithValue("@Fecha", venta.Fecha);
                             cmdVenta.Parameters.AddWithValue("@IVA", venta.IVA);
                             cmdVenta.Parameters.AddWithValue("@Total", venta.Total);
                             ventaId = (int)await cmdVenta.ExecuteScalarAsync();
@@ -364,8 +363,8 @@ namespace webGestionInventario.data
                         {
                             
                             string insertDetalleQuery = @"
-                                INSERT INTO DetalleVenta (IdVenta, IdProducto, Producto, Precio, Cantidad, Subtotal) 
-                                VALUES (@IdVenta, @IdProducto, @Producto, @Precio, @Cantidad, @Subtotal)";
+                        INSERT INTO DetalleVenta (IdVenta, IdProducto, Producto, Precio, Cantidad, Subtotal) 
+                        VALUES (@IdVenta, @IdProducto, @Producto, @Precio, @Cantidad, @Subtotal)";
 
                             using (var cmdDetalle = new SqlCommand(insertDetalleQuery, connection, transaction))
                             {
@@ -379,51 +378,55 @@ namespace webGestionInventario.data
                             }
 
                             
+                           
                             string checkAndUpdateStockQuery = @"
-                                DECLARE @Insuficiente TABLE (Nombre NVARCHAR(100));
+                        SET NOCOUNT ON;
+                        DECLARE @Insuficiente TABLE (Nombre NVARCHAR(100));
 
-                                INSERT INTO @Insuficiente (Nombre)
-                                SELECT i.Nombre
-                                FROM Insumos i
-                                INNER JOIN Recetas r ON i.Id = r.Id_Insumo
-                                WHERE r.Id_Producto = @IdProducto 
-                                  AND i.StockActual < (r.CantidadRequerida * @CantidadVendida);
+                        INSERT INTO @Insuficiente (Nombre)
+                        SELECT i.Nombre
+                        FROM Insumos i
+                        INNER JOIN Recetas r ON i.Id = r.Id_Insumo
+                        WHERE r.Id_Producto = @IdProducto 
+                          AND i.StockActual < (r.CantidadRequerida * @CantidadVendida);
 
-                                IF EXISTS (SELECT 1 FROM @Insuficiente)
-                                BEGIN
-                                    SELECT Nombre FROM @Insuficiente;
-                                END
-                                ELSE
-                                BEGIN
-                                    UPDATE Insumos 
-                                    SET StockActual = StockActual - (r.CantidadRequerida * @CantidadVendida)
-                                    FROM Insumos i
-                                    INNER JOIN Recetas r ON i.Id = r.Id_Insumo
-                                    WHERE r.Id_Producto = @IdProducto;
-                                    
-                                    SELECT NULL; -- Indicar éxito
-                                END";
+                        IF EXISTS (SELECT 1 FROM @Insuficiente)
+                        BEGIN
+                            SELECT TOP 1 Nombre FROM @Insuficiente;
+                        END
+                        ELSE
+                        BEGIN
+                            UPDATE i 
+                            SET i.StockActual = i.StockActual - (r.CantidadRequerida * @CantidadVendida)
+                            FROM Insumos i
+                            INNER JOIN Recetas r ON i.Id = r.Id_Insumo
+                            WHERE r.Id_Producto = @IdProducto;
+                            
+                            SELECT NULL; 
+                        END";
 
                             using (var cmdStock = new SqlCommand(checkAndUpdateStockQuery, connection, transaction))
                             {
                                 cmdStock.Parameters.AddWithValue("@CantidadVendida", detalle.Cantidad);
                                 cmdStock.Parameters.AddWithValue("@IdProducto", detalle.IdProducto);
+
                                 
-                                using (var reader = await cmdStock.ExecuteReaderAsync())
+                                
+                                var result = await cmdStock.ExecuteScalarAsync();
+                                if (result != null && result != DBNull.Value)
                                 {
-                                    if (await reader.ReadAsync() && !reader.IsDBNull(0))
-                                    {
-                                        string insumoFaltante = reader.GetString(0);
-                                        throw new InvalidOperationException($"Stock insuficiente para el insumo: {insumoFaltante} al procesar {detalle.Producto}.");
-                                    }
+                                    string insumoFaltante = result.ToString();
+                                    throw new InvalidOperationException($"Stock insuficiente para el insumo: {insumoFaltante} al procesar {detalle.Producto}.");
                                 }
                             }
                         }
 
+                        
                         await transaction.CommitAsync();
                     }
                     catch (Exception)
                     {
+                        
                         await transaction.RollbackAsync();
                         throw;
                     }
@@ -431,7 +434,7 @@ namespace webGestionInventario.data
             }
         }
 
-        
+
         public async Task GuardarProductoCalculado(string nombre, decimal precio, List<TempReceta> ingredientes)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -621,6 +624,55 @@ namespace webGestionInventario.data
             }
             return esValido;
         }
+        public async Task<List<VentaHistorialDto>> ObtenerHistorialVentas()
+        {
+            var historial = new List<VentaHistorialDto>();
+            try
+            {
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    string query = @"
+                SELECT 
+                    v.Id AS IdVenta, 
+                    v.Fecha, 
+                    v.NombreCliente, 
+                    d.Producto, 
+                    d.Cantidad, 
+                    d.Subtotal, 
+                    v.Total 
+                FROM Ventas v 
+                JOIN DetalleVenta d ON v.Id = d.IdVenta 
+                ORDER BY v.Fecha DESC";
+
+                    using (var command = new SqlCommand(query, connection))
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            historial.Add(new VentaHistorialDto
+                            {
+                                IdVenta = reader["IdVenta"] != DBNull.Value ? Convert.ToInt32(reader["IdVenta"]) : 0,
+                                Fecha = reader["Fecha"] != DBNull.Value ? Convert.ToDateTime(reader["Fecha"]) : DateTime.MinValue,
+                                Cliente = reader["NombreCliente"] != DBNull.Value ? reader["NombreCliente"].ToString() : "Consumidor Final",
+                                Producto = reader["Producto"] != DBNull.Value ? reader["Producto"].ToString() : "Producto Desconocido",
+                                Cantidad = reader["Cantidad"] != DBNull.Value ? Convert.ToInt32(reader["Cantidad"]) : 0,
+                                Subtotal = reader["Subtotal"] != DBNull.Value ? Convert.ToDecimal(reader["Subtotal"]) : 0m,
+                                TotalVenta = reader["Total"] != DBNull.Value ? Convert.ToDecimal(reader["Total"]) : 0m
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error en ObtenerHistorialVentas: {ex.Message}");
+                throw;
+            }
+            return historial;
+        }
+
+
 
 
     }
