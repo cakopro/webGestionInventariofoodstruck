@@ -154,7 +154,7 @@ namespace webGestionInventario.data
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                string query = "UPDATE Proveedores SET Nombre = @Nombre, Telefono = @Telefono, Rut = @Rut, Correo = @Correo, Empresa = @Empresa, Direccion = @Direccion WHERE Id = @Id";
+                string query = "UPDATE Proveedores SET Nombre = @Nombre, Telefono = @Telefono, Rut = @Rut, Correo = @Correo, Empresa = @Empresa, Direccion = @Direccion, Estado = @Estado WHERE Id = @Id";
                 using (var command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Nombre", proveedor.Nombre);
@@ -163,6 +163,7 @@ namespace webGestionInventario.data
                     command.Parameters.AddWithValue("@Correo", proveedor.Correo);
                     command.Parameters.AddWithValue("@Empresa", proveedor.Empresa);
                     command.Parameters.AddWithValue("@Direccion", proveedor.Direccion);
+                    command.Parameters.AddWithValue("@Estado", proveedor.Estado);
                     command.Parameters.AddWithValue("@Id", proveedor.Id);
 
                     await command.ExecuteNonQueryAsync();
@@ -507,7 +508,7 @@ namespace webGestionInventario.data
             using (var connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                var cmd = new SqlCommand("SELECT Id, Nombre, PrecioVenta FROM Productos WHERE Id = @Id", connection);
+                var cmd = new SqlCommand("SELECT Id, Nombre, PrecioVenta, estado FROM Productos WHERE Id = @Id", connection);
                 cmd.Parameters.AddWithValue("@Id", id);
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
@@ -517,7 +518,8 @@ namespace webGestionInventario.data
                         {
                             Id = Convert.ToInt32(reader["Id"]),
                             Nombre = reader["Nombre"].ToString(),
-                            PrecioVenta = Convert.ToDecimal(reader["PrecioVenta"])
+                            PrecioVenta = Convert.ToDecimal(reader["PrecioVenta"]),
+                            Estado = Convert.ToBoolean(reader["estado"])
                         };
                     }
                 }
@@ -525,7 +527,7 @@ namespace webGestionInventario.data
             return prod;
         }
 
-        public async Task UpdateProductoCalculado(int idProducto, string nombre, decimal precio, List<TempReceta> ingredientes)
+        public async Task UpdateProductoCalculado(int idProducto, string nombre, decimal precio, bool estado, List<TempReceta> ingredientes)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -535,11 +537,12 @@ namespace webGestionInventario.data
                     try
                     {
                       
-                        string sqlProd = "UPDATE Productos SET Nombre = @Nombre, PrecioVenta = @Precio WHERE Id = @Id";
+                        string sqlProd = "UPDATE Productos SET Nombre = @Nombre, PrecioVenta = @Precio, estado = @Estado WHERE Id = @Id";
                         using (var cmd = new SqlCommand(sqlProd, connection, transaction))
                         {
                             cmd.Parameters.AddWithValue("@Nombre", nombre);
                             cmd.Parameters.AddWithValue("@Precio", precio);
+                            cmd.Parameters.AddWithValue("@Estado", estado); 
                             cmd.Parameters.AddWithValue("@Id", idProducto);
                             await cmd.ExecuteNonQueryAsync();
                         }
@@ -603,7 +606,7 @@ namespace webGestionInventario.data
             {
                 await connection.OpenAsync();
 
-                string query = "SELECT COUNT(1) FROM Proveedores WHERE Rut = @rut AND Id != @id";
+                string query = "SELECT COUNT(1) FROM Proveedores WHERE Rut = @rut AND Id <> @id";
 
                 using (var command = new SqlCommand(query, connection))
                 {

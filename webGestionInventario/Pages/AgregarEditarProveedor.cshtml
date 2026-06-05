@@ -59,6 +59,21 @@
             <input asp-for="ProveedorActual.Direccion" class="w-full border border-gray-300 rounded-md p-2" placeholder="Ej: Calle falsa 123" required />
         </div>
 
+        @if (Model.ProveedorActual.Id != 0)
+        {
+            <div class="mb-6">
+                <label class="block text-gray-700 font-bold mb-2">Estado:</label>
+                <select asp-for="ProveedorActual.Estado" class="w-full border border-gray-300 rounded-md p-2 mb-4" required>
+                    <option value="true">Activo</option>
+                    <option value="false">Desactivado</option>
+                </select>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" asp-for="ProveedorActual.Estado" value="true" />
+        }
+
         <div class="flex flex-row gap-2">
             <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">
                 @(Model.ProveedorActual.Id == 0 ? "Guardar" : "Actualizar")

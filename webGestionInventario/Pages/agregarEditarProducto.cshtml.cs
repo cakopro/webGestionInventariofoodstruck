@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Text.Json;
-using webGestionInventario.Model;
-using webGestionInventario.data;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Linq;
+using System.Text.Json;
+using webGestionInventario.data;
+using webGestionInventario.Model;
 
 namespace webGestionInventario.Pages
 {
@@ -16,12 +17,20 @@ namespace webGestionInventario.Pages
         [BindProperty] public int ProductoId { get; set; }
         [BindProperty] public string JsonReceta { get; set; } = "[]";
         [BindProperty] public string NombreProducto { get; set; }
+        [BindProperty] public bool ProductoActualEstado { get; set; }
+        public List<SelectListItem> Estados { get; set; }
 
         public List<Insumos> ListaInsumos { get; set; } = new();
 
         public async Task OnGet(int? id)
         {
             ListaInsumos = await _db.ObtenerInsumos();
+
+            Estados = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "true", Text = "Activo" },
+            new SelectListItem { Value = "false", Text = "Desactivado" }
+        };
 
             if (id.HasValue && id.Value > 0)
             {
@@ -31,8 +40,8 @@ namespace webGestionInventario.Pages
                 {
                     ProductoId = producto.Id;
                     NombreProducto = producto.Nombre;
+                    ProductoActualEstado = producto.Estado;
 
-                  
                     var recetaOriginal = await _db.ObtenerIngredientesPorProducto(id.Value);
                     var recetaFormatoJs = recetaOriginal.Select(r => new
                     {
@@ -45,6 +54,10 @@ namespace webGestionInventario.Pages
 
                
                     JsonReceta = JsonSerializer.Serialize(recetaFormatoJs);
+                }
+                else
+                {
+                    ProductoActualEstado = true;
                 }
             }
         }
@@ -72,7 +85,7 @@ namespace webGestionInventario.Pages
                 decimal precioFinalConUtilidad = costoBase * 1.20m;
 
                 if (ProductoId > 0)
-                    await _db.UpdateProductoCalculado(ProductoId, NombreProducto, precioFinalConUtilidad, listaFinal);
+                    await _db.UpdateProductoCalculado(ProductoId, NombreProducto, precioFinalConUtilidad, ProductoActualEstado, listaFinal);
                 else
                     await _db.GuardarProductoCalculado(NombreProducto, precioFinalConUtilidad, listaFinal);
 
