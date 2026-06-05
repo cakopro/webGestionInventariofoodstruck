@@ -272,7 +272,9 @@ namespace webGestionInventario.data
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
-                string query = "UPDATE Insumos SET Nombre = @Nombre, StockActual = @StockActual, UnidadMedida = @UnidadMedida, PrecioUnitario = @PrecioUnitario, FechaCaducidad = @FechaCaducidad, Id_Proveedor = @Id_Proveedor WHERE Id = @Id";
+              
+                string query = "UPDATE Insumos SET Nombre = @Nombre, StockActual = @StockActual, UnidadMedida = @UnidadMedida, PrecioUnitario = @PrecioUnitario, FechaCaducidad = @FechaCaducidad, Id_Proveedor = @Id_Proveedor, Estado = @Estado WHERE Id = @Id";
+
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Nombre", insumo.Nombre);
@@ -281,6 +283,9 @@ namespace webGestionInventario.data
                     cmd.Parameters.AddWithValue("@PrecioUnitario", insumo.PrecioUnitario);
                     cmd.Parameters.AddWithValue("@FechaCaducidad", insumo.FechaCaducidad);
                     cmd.Parameters.AddWithValue("@Id_Proveedor", insumo.Id_Proveedor);
+
+                
+                    cmd.Parameters.AddWithValue("@Estado", insumo.Estado);
                     cmd.Parameters.AddWithValue("@Id", insumo.Id);
 
                     await cmd.ExecuteNonQueryAsync();

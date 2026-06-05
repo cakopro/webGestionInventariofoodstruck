@@ -42,7 +42,6 @@ namespace webGestionInventario.Pages
         {
        
             ModelState.Remove("InsumoEditar.NombreProveedor");
-            ModelState.Remove("InsumoEditar.Estado");
 
             if (InsumoEditar.FechaCaducidad.Year < 1753)
             {

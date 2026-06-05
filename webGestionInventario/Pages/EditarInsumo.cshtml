@@ -57,6 +57,14 @@
                 }
             </select>
 
+            <div class="mb-6">
+                <label class="block text-gray-700 font-bold mb-2">Estado del Insumo:</label>
+                <select asp-for="InsumoEditar.Estado" class="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <option value="true">Activo</option>
+                    <option value="false">Desactivado</option>
+                </select>
+            </div>
+
             <div class="flex flex-row gap-2 pt-8">
                 <button type="submit" class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition">Actualizar</button>
                 <a href="/Insumos" class="inline-block mt-4 bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition text-center" role="button">Cancelar</a>
