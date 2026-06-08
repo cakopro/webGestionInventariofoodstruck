@@ -677,8 +677,108 @@ namespace webGestionInventario.data
             return historial;
         }
 
+        public async Task<List<Insumos>> ObtenerInsumosBajoStock()
+        {
+            var insumos = new List<Insumos>();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string sql = @"
+            SELECT i.Id, i.Nombre, i.StockActual, i.UnidadMedida, i.PrecioUnitario, 
+                   i.FechaCaducidad, i.Id_Proveedor, i.Estado, p.Nombre AS NombreProveedor
+            FROM Insumos i
+            INNER JOIN Proveedores p ON i.Id_Proveedor = p.Id
+            WHERE i.Estado = 1 AND i.StockActual < 10";
+
+                var command = new SqlCommand(sql, connection);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        insumos.Add(new Insumos
+                        {
+                            Id = (int)reader["Id"],
+                            Nombre = reader["Nombre"].ToString(),
+                            StockActual = (int)reader["StockActual"],
+                            UnidadMedida = reader["UnidadMedida"].ToString(),
+                            PrecioUnitario = (decimal)reader["PrecioUnitario"],
+                            FechaCaducidad = (DateTime)reader["FechaCaducidad"],
+                            Id_Proveedor = (int)reader["Id_Proveedor"],
+                            Estado = (bool)reader["Estado"],
 
 
+                            NombreProveedor = reader["NombreProveedor"].ToString()
+                        });
+                    }
+                }
+            }
+            return insumos;
+        }
+        public async Task<List<Insumos>> ObtenerInsumosProximosAVencer()
+        {
+            var insumos = new List<Insumos>();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                string sql = @"
+            SELECT i.Id, i.Nombre, i.StockActual, i.UnidadMedida, i.PrecioUnitario, 
+                   i.FechaCaducidad, i.Id_Proveedor, i.Estado, p.Nombre AS NombreProveedor
+            FROM Insumos i
+            INNER JOIN Proveedores p ON i.Id_Proveedor = p.Id
+            WHERE i.Estado = 1 
+              AND i.FechaCaducidad >= CAST(GETDATE() AS DATE)
+              AND i.FechaCaducidad <= DATEADD(day, 7, CAST(GETDATE() AS DATE))
+            ORDER BY i.FechaCaducidad ASC"; 
 
+                using (var command = new SqlCommand(sql, connection))
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        insumos.Add(new Insumos
+                        {
+                            Id = (int)reader["Id"],
+                            Nombre = reader["Nombre"].ToString(),
+                            StockActual = (int)reader["StockActual"],
+                            UnidadMedida = reader["UnidadMedida"].ToString(),
+                            PrecioUnitario = (decimal)reader["PrecioUnitario"],
+                            FechaCaducidad = (DateTime)reader["FechaCaducidad"],
+                            Id_Proveedor = (int)reader["Id_Proveedor"],
+                            Estado = (bool)reader["Estado"],
+                            NombreProveedor = reader["NombreProveedor"].ToString()
+                        });
+                    }
+                }
+            }
+            return insumos;
+        }
+
+        public async Task<decimal> ObtenerGananciaDelDia()
+        {
+            decimal totalGanado = 0;
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string sql = @"
+            SELECT COALESCE(SUM(Total), 0) 
+            FROM Ventas 
+            WHERE CAST(Fecha AS DATE) = CAST(GETDATE() AS DATE)";
+
+                using (var command = new SqlCommand(sql, connection))
+                {
+                    var resultado = await command.ExecuteScalarAsync();
+                    if (resultado != null && resultado != DBNull.Value)
+                    {
+                        totalGanado = Convert.ToDecimal(resultado);
+                    }
+                }
+            }
+
+            return totalGanado;
+        }
     }
 }

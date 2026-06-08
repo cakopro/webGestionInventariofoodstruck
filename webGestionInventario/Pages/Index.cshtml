@@ -1,10 +1,129 @@
 ﻿@page "/Index"
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Inicio - Dashboard Food Truck";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Bienvenido a la pagina web de gestion inventario de food struck</p>
+<div class="max-w-7xl mx-auto p-6 space-y-8">
+    
+    <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Panel de Control</h1>
+            <p class="text-slate-300 mt-1">Gestión de food truck.</p>
+        </div>
+        <div class="bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm text-sm font-medium">
+            📅 @DateTime.Now.ToString("dd 'de' MMMM, yyyy")
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ganancia de Hoy</p>
+                <h3 class="text-3xl font-extrabold text-gray-900 mt-1">
+                    $@Model.GananciaHoy.ToString("N0", new System.Globalization.CultureInfo("es-CL"))
+                </h3>
+            </div>
+            <div class="bg-green-100 p-3 rounded-xl text-green-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125V18.75M3.75 20.25h16.5M2.25 6h18M2.25 15h18" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Insumos Bajo Stock</p>
+                <h3 class="text-3xl font-extrabold @(Model.ListaInsumosBajoStock.Count > 0 ? "text-red-600" : "text-gray-900") mt-1">
+                    @Model.ListaInsumosBajoStock.Count Items
+                </h3>
+            </div>
+            <div class="bg-red-100 p-3 rounded-xl text-red-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Próximos a Vencer (7 días)</p>
+                <h3 class="text-3xl font-extrabold @(Model.ListaInsumosCaducados.Count > 0 ? "text-amber-600" : "text-gray-900") mt-1">
+                    @Model.ListaInsumosCaducados.Count Items
+                </h3>
+            </div>
+            <div class="bg-amber-100 p-3 rounded-xl text-amber-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center gap-2 text-red-600 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+                <h2 class="text-lg font-bold text-gray-800">Alertas de Bajo Stock (Menos de 10)</h2>
+            </div>
+            
+            <div class="divide-y divide-gray-100 max-h-64 overflow-y-auto pr-2">
+                @if (Model.ListaInsumosBajoStock.Count == 0)
+                {
+                    <p class="text-sm text-gray-500 py-4">Inventario sin productos con bajo stock.</p>
+                }
+                else
+                {
+                    foreach (var insumo in Model.ListaInsumosBajoStock)
+                    {
+                        <div class="py-3 flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold text-gray-900 text-sm">@insumo.Nombre</p>
+                               <p class="text-xs text-gray-500">Proveedor: @insumo.NombreProveedor</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm font-bold text-red-600">@insumo.StockActual @insumo.UnidadMedida</span>
+                                <p class="text-xs text-gray-400">Reponer urgente</p>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center gap-2 text-amber-600 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286Zm0 13.036h.008v.008H12v-.008Z" />
+                </svg>
+                <h2 class="text-lg font-bold text-gray-800">Alertas de Vencimiento Cercano</h2>
+            </div>
+            
+            <div class="divide-y divide-gray-100 max-h-64 overflow-y-auto pr-2">
+                @if (Model.ListaInsumosCaducados.Count == 0)
+                {
+                    <p class="text-sm text-gray-500 py-4">Sin productos proximos a caducar esta semana.</p>
+                }
+                else
+                {
+                    foreach (var insumo in Model.ListaInsumosCaducados)
+                    {
+                        <div class="py-3 flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold text-gray-900 text-sm">@insumo.Nombre</p>
+                                <p class="text-xs text-gray-500">Proveedor: @insumo.NombreProveedor</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm font-bold text-amber-600">@insumo.FechaCaducidad.ToString("dd-MM-yyyy")</span>
+                                <p class="text-xs text-gray-400">@((insumo.FechaCaducidad - DateTime.Today).Days) días restantes</p>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+    </div>
 </div>
