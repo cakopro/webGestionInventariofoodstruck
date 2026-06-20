@@ -23,9 +23,14 @@ namespace webGestionInventario.Pages
 
         public string MensajeError { get; set; }
 
-        public void OnGet()
+        public IActionResult OnGet(string? origen)
         {
-            
+            if (origen == "qr")
+            {
+                return RedirectToPage("/Menu");
+            }
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
