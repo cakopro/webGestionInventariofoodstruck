@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Text.Json;
+using MercadoPago.Config;
+using MercadoPago.Client.Preference;
+using MercadoPago.Resource.Preference;
 
 namespace webGestionInventario.Pages
 {
@@ -64,12 +67,55 @@ namespace webGestionInventario.Pages
 
             try
             {
+               
                 await _databaseHelper.RegistrarVenta(NuevaVenta, detalles);
-                return RedirectToPage("./Ventas", new { success = "true" });
+
+                // EN ESTA PARTE DEBEN DE PONER SUS ACCESS TOKEN, QUE SE CREARON CON ANTERIORIDAD AL TENER SUS CUENTAS EN MERCADO LIBRE DEVELOPERS!!
+                MercadoPagoConfig.AccessToken = "TU_TOKEN_AQUI";
+
+                var itemsMercadoPago = new List<PreferenceItemRequest>();
+
+                foreach (var d in detalles)
+                {
+                    itemsMercadoPago.Add(new PreferenceItemRequest
+                    {
+                        Title = $"Producto ID: {d.IdProducto}",
+                        Quantity = d.Cantidad,
+                        CurrencyId = "CLP",
+                        UnitPrice = (decimal)d.Precio 
+                    });
+                }
+     
+                if (NuevaVenta.IVA > 0)
+                {
+                    itemsMercadoPago.Add(new PreferenceItemRequest
+                    {
+                        Title = "IVA (19%)",
+                        Quantity = 1,
+                        CurrencyId = "CLP",
+                        UnitPrice = NuevaVenta.IVA
+                    });
+                }
+
+                var preferenceRequest = new PreferenceRequest
+                {
+                    Items = itemsMercadoPago,
+                    BackUrls = new PreferenceBackUrlsRequest
+                    {
+                        Success = "http://localhost:5215/Ventas",
+                        Failure = "http://localhost:5215/Ventas",
+                        Pending = "http://localhost:5215/Ventas"
+                    }
+                };
+
+                var client = new PreferenceClient();
+                Preference preference = await client.CreateAsync(preferenceRequest);
+
+                return Redirect(preference.InitPoint);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, $"Error en la base de datos al registrar: {ex.Message}");
+                ModelState.AddModelError(string.Empty, $"Error al procesar la venta: {ex.Message}");
                 await CargarProductos();
                 await CargarHistorial();
                 return Page();
@@ -101,7 +147,6 @@ namespace webGestionInventario.Pages
                     {
                         Fecha = primeraFila.Fecha,
                         Cliente = nombreCliente,
-                        
                         ProductosResumen = string.Join(", ", g
                             .GroupBy(x => x.Producto)
                             .Select(p => $"{p.Sum(item => item.Cantidad)}x {p.Key}")),
