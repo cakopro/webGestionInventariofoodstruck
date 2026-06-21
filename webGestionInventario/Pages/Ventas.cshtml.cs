@@ -97,6 +97,7 @@ namespace webGestionInventario.Pages
                     });
                 }
 
+                // Definir los BackUrls explícitamente primero
                 var preferenceRequest = new PreferenceRequest
                 {
                     Items = itemsMercadoPago,
@@ -106,10 +107,14 @@ namespace webGestionInventario.Pages
                         Failure = "http://localhost:5215/Ventas",
                         Pending = "http://localhost:5215/Ventas"
                     }
+                    // ¡BORRA O COMENTA LAS LÍNEAS DE AutoReturn Y BinaryMode SI SIGUEN AHÍ!
                 };
 
                 var client = new PreferenceClient();
                 Preference preference = await client.CreateAsync(preferenceRequest);
+
+                // 2. Redireccionamos
+                return Redirect(preference.InitPoint);
 
                 return Redirect(preference.InitPoint);
             }
